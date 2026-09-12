@@ -60,3 +60,5 @@ create policy "public read" on transcript_lines for select using (true);
 create policy "public read" on summaries for select using (true);
 create policy "public read" on action_items for select using (true);
 create policy "public read" on highlights for select using (true);
+
+create policy "public update" on action_items for update using (true) with check (true);

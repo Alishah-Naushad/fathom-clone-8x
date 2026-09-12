@@ -51,16 +51,27 @@ const MEETINGS = [
       "A project kickoff meeting for a notifications system revamp, with a PM, a designer, two engineers, and a data analyst discussing scope, initial design direction, technical constraints, and rough timeline. Some disagreement about scope that gets resolved by the end. 40 minutes long.",
   },
   {
-    title: "Cross-team Planning - Q4 Launch",
-    meeting_type: "enhanced",
-    participant_count: 8,
-    participants: [
-      "Sarah Chen", "Marcus Webb", "Priya Nair", "Tom Reyes",
-      "Dana Fox", "Leo Park", "Nina Osei", "Chris Blake",
-    ],
-    duration_minutes: 55,
-    description:
-      "A cross-team planning meeting with 8 people (product, engineering, design, and sales) discussing the Q4 launch plan for a new feature. Includes some crosstalk, a few tangents, disagreement about timeline between engineering and sales, and ends with agreed next steps and owners assigned. Natural, slightly messy real-meeting energy with people occasionally talking over each other. 55 minutes long.",
+  title: "Cross-team Planning - Q4 Launch",
+  meeting_type: "enhanced",
+  participant_count: 8,
+  participants: [
+    "Sarah Chen", "Marcus Webb", "Priya Nair", "Tom Reyes",
+    "Dana Fox", "Leo Park", "Nina Osei", "Chris Blake",
+  ],
+  duration_minutes: 55,
+  description:
+  `A cross-team planning meeting with 8 people (product, engineering, design, and sales) discussing the Q4 launch plan for a new feature. This is a LONG meeting — you must write at least 100 lines of dialogue, ideally 120-150. Do not compress the discussion into a few quick exchanges. Instead, have MULTIPLE topics discussed in detail, each with several people weighing in, asking clarifying questions, going back and forth before reaching a conclusion. Cover at least 5 distinct discussion topics (e.g., timeline, feature scope, design handoff, QA/testing plan, rollout/marketing coordination), each getting real back-and-forth, not a single exchange.
+
+  This should feel like a REAL, slightly chaotic meeting, not a polished summary. Specifically include:
+  - At least 4 moments where one person is cut off mid-sentence (ending with "—") and another person immediately jumps in as a SEPARATE line with its own timestamp
+  - At least 2 moments where two people nearly talk over each other, as separate consecutive lines with close but not identical timestamps, one saying "sorry, go ahead" or similar
+  - Filler words and real speech patterns: "um", "yeah so", "I mean", trailing off with "..."
+  - One clear disagreement between engineering and sales about the timeline that runs for several exchanges before a PM redirects
+  - One off-topic tangent that runs 3-5 lines before someone brings the group back
+  - Someone repeating part of what they just said because they got talked over
+  - Natural imprecision: unfinished thoughts, one-word acknowledgments, someone asking "wait, what did you say?"
+
+  Do not wrap up early. Keep the discussion going through all 5 topics before reaching final agreement on next steps and owners. 55 minutes long, MINIMUM 100 lines of dialogue — this is a strict requirement.`,
   },
 ];
 
@@ -70,34 +81,55 @@ const TEMPLATES = ["enhanced", "sales", "standup", "one_on_one"];
 // that plain text into structured rows matching our transcript_lines table.
 function parseTranscript(raw: string) {
   const lines = raw.split("\n").filter((l) => l.trim());
-  return lines
+  const parsed = lines
     .map((line, i) => {
-      const match = line.match(/^\[(\d+):(\d+)\]\s*([^:]+):\s*(.+)$/);
+      const match = line.match(/^\[(\d+):(\d+)\]\s*([^:\[\]]+):\s*(.+)$/);
       if (!match) return null;
       const [, mm, ss, speaker, text] = match;
+      const cleanedText = text.replace(/^\[\d+:\d+\]\s*/, "").trim();
+      const cleanedSpeaker = speaker.trim();
+
+      if (!cleanedSpeaker || cleanedSpeaker.length > 40) return null;
+
       return {
-        speaker: speaker.trim(),
+        speaker: cleanedSpeaker,
         timestamp_seconds: parseInt(mm) * 60 + parseInt(ss),
-        text: text.trim(),
+        text: cleanedText,
         line_order: i,
       };
     })
     .filter((row): row is NonNullable<typeof row> => row !== null);
+
+  return { parsed, droppedCount: lines.length - parsed.length };
 }
 
-async function seedMeeting(meeting: (typeof MEETINGS)[number]) {
-  console.log(`\n--- Seeding: ${meeting.title} ---`);
+async function seedMeeting(meetingConfig: (typeof MEETINGS)[number]) {
+  console.log(`\n--- Seeding: ${meetingConfig.title} ---`);
 
-  // 1. Insert the meeting row itself
+  // 1. Generate transcript FIRST, before creating the meeting row
+  console.log("Generating transcript...");
+  const rawTranscript = await generateTranscript(meetingConfig.description, meetingConfig.duration_minutes);
+  const { parsed: parsedLines, droppedCount } = parseTranscript(rawTranscript);
+  if (droppedCount > 0) console.log(`  (dropped ${droppedCount} malformed line(s))`);
+
+  if (parsedLines.length === 0) {
+    console.error("Transcript parsing produced 0 lines — raw output was:\n", rawTranscript);
+    return;
+  }
+
+  // 2. Derive the REAL participant list from actual speakers in the transcript
+  const actualParticipants = Array.from(new Set(parsedLines.map((l) => l.speaker)));
+
+  // 3. Now insert the meeting row using the real speaker list
   const { data: meetingRow, error: meetingErr } = await supabaseAdmin
     .from("meetings")
     .insert({
-      title: meeting.title,
+      title: meetingConfig.title,
       meeting_date: new Date().toISOString(),
-      duration_minutes: meeting.duration_minutes,
-      participant_count: meeting.participant_count,
-      participants: meeting.participants,
-      meeting_type: meeting.meeting_type,
+      duration_minutes: meetingConfig.duration_minutes,
+      participant_count: actualParticipants.length,
+      participants: actualParticipants,
+      meeting_type: meetingConfig.meeting_type,
     })
     .select()
     .single();
@@ -106,86 +138,63 @@ async function seedMeeting(meeting: (typeof MEETINGS)[number]) {
     console.error("Failed to insert meeting:", meetingErr);
     return;
   }
-  console.log(`Meeting created: ${meetingRow.id}`);
+  console.log(`Meeting created: ${meetingRow.id} (${actualParticipants.length} speakers: ${actualParticipants.join(", ")})`);
 
-  // 2. Generate a fake transcript via Gemini
-  console.log("Generating transcript...");
-  const rawTranscript = await generateTranscript(meeting.description);
-  const parsedLines = parseTranscript(rawTranscript);
-
-  if (parsedLines.length === 0) {
-    console.error("Transcript parsing produced 0 lines — raw output was:\n", rawTranscript);
-    return;
-  }
-
-  // 3. Insert transcript lines
+  // 4. Insert transcript lines
   const { error: linesErr } = await supabaseAdmin.from("transcript_lines").insert(
     parsedLines.map((line) => ({ ...line, meeting_id: meetingRow.id }))
   );
   if (linesErr) console.error("Failed to insert transcript lines:", linesErr);
   else console.log(`Inserted ${parsedLines.length} transcript lines`);
 
-  // Full transcript text, used as input for summarization
-  const fullTranscriptText = parsedLines
-    .map((l) => `${l.speaker}: ${l.text}`)
-    .join("\n");
+  const fullTranscriptText = parsedLines.map((l) => `${l.speaker}: ${l.text}`).join("\n");
 
-  // 4. Generate a summary + action items for EVERY template, not just the
-  // meeting's default one — this is what makes your template switcher
-  // actually show different content when clicked, instead of the same
-  // summary relabeled.
-  for (const template of TEMPLATES) {
-    console.log(`Generating "${template}" summary...`);
-    try {
-      const { summary, actionItems } = await generateSummary(fullTranscriptText, template);
+  // 5. Generate summary (unchanged from before)
+  console.log(`Generating "${meetingConfig.meeting_type}" summary...`);
+  try {
+    const { summary, actionItems } = await generateSummary(fullTranscriptText, meetingConfig.meeting_type);
 
-      const { error: summaryErr } = await supabaseAdmin.from("summaries").insert({
-        meeting_id: meetingRow.id,
-        template,
-        content: summary,
-      });
-      if (summaryErr) console.error(`Failed to insert ${template} summary:`, summaryErr);
+    await supabaseAdmin.from("summaries").insert({
+      meeting_id: meetingRow.id,
+      template: meetingConfig.meeting_type,
+      content: summary,
+    });
 
-      // Only insert action items once (from the meeting's own default
-      // template) — otherwise you'd get 4x duplicate action item lists,
-      // one per template, which makes no sense in the UI.
-      if (template === meeting.meeting_type && actionItems?.length) {
-        const { error: actionErr } = await supabaseAdmin.from("action_items").insert(
-          actionItems.map((item: { text: string; owner: string | null }) => ({
-            meeting_id: meetingRow.id,
-            text: item.text,
-            owner: item.owner,
-          }))
-        );
-        if (actionErr) console.error("Failed to insert action items:", actionErr);
-        else console.log(`Inserted ${actionItems.length} action items`);
-      }
-    } catch (err) {
-      console.error(`Failed generating "${template}" summary:`, err);
+    if (actionItems?.length) {
+      await supabaseAdmin.from("action_items").insert(
+        actionItems.map((item: { text: string; owner: string | null }) => ({
+          meeting_id: meetingRow.id,
+          text: item.text,
+          owner: item.owner,
+        }))
+      );
+      console.log(`Inserted ${actionItems.length} action items`);
     }
+  } catch (err) {
+    console.error(`Failed generating summary:`, err);
   }
 
-  // 5. Add one highlight on a middle-ish line, so the highlight feature
-  // has real seeded data to show off, not just an empty state.
+  // 6. Highlight (unchanged)
   if (parsedLines.length > 4) {
     const midLine = parsedLines[Math.floor(parsedLines.length / 2)];
-    const { data: insertedLines } = await supabaseAdmin
+    const { data: insertedLine } = await supabaseAdmin
       .from("transcript_lines")
       .select("id")
       .eq("meeting_id", meetingRow.id)
       .eq("line_order", midLine.line_order)
       .single();
 
-    if (insertedLines) {
+    if (insertedLine) {
       await supabaseAdmin.from("highlights").insert({
         meeting_id: meetingRow.id,
-        transcript_line_id: insertedLines.id,
+        transcript_line_id: insertedLine.id,
         note: "Key moment",
       });
       console.log("Added 1 highlight");
     }
   }
-  await new Promise((resolve) => setTimeout(resolve, 5000)); // pause before next meeting
+
+  await new Promise((resolve) => setTimeout(resolve, 5000));
 }
 
 async function seed() {

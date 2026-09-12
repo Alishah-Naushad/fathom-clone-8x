@@ -37,7 +37,6 @@ export default function SummaryTab({
   const [copied, setCopied] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
 
-  // Find summary matching selected template
   const currentSummary = summaries.find(
     (s) => s.template.toLowerCase() === selectedTemplate.toLowerCase()
   ) || summaries[0];
@@ -46,13 +45,11 @@ export default function SummaryTab({
     setSelectedTemplate(templateId);
     setDropdownOpen(false);
 
-    // Check if summary for this template already exists
     const existing = summaries.find(
       (s) => s.template.toLowerCase() === templateId.toLowerCase()
     );
 
     if (!existing && transcriptText) {
-      // Generate on-the-fly via /api/summarize
       setIsGenerating(true);
       try {
         const res = await fetch("/api/summarize", {
@@ -65,7 +62,6 @@ export default function SummaryTab({
         });
         const data = await res.json();
         if (data?.summary) {
-          // Store in Supabase
           const { data: inserted } = await supabase
             .from("summaries")
             .upsert({
@@ -108,10 +104,8 @@ export default function SummaryTab({
 
   return (
     <div className="flex flex-col gap-4 py-3">
-      {/* Top Toolbar: Template Selector, Language Pill, Copy Button */}
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-2 flex-wrap">
-          {/* Template Dropdown Button */}
           <div className="relative">
             <button
               onClick={() => setDropdownOpen(!dropdownOpen)}
@@ -126,7 +120,6 @@ export default function SummaryTab({
               </svg>
             </button>
 
-            {/* Template Dropdown Menu (matching screenshot 4) */}
             {dropdownOpen && (
               <div className="absolute top-full left-0 mt-1.5 w-80 bg-[#212328] border border-[#383a42] rounded-lg shadow-2xl py-2 z-40 max-h-96 overflow-y-auto">
                 {TEMPLATE_OPTIONS.map((opt) => {
@@ -136,9 +129,7 @@ export default function SummaryTab({
                       key={opt.id}
                       onClick={() => handleSelectTemplate(opt.id)}
                       className={`w-full text-left px-3.5 py-2.5 flex items-start gap-3 transition-colors cursor-pointer ${
-                        isCur
-                          ? "bg-[#183446] border-l-2 border-[#00beff]"
-                          : "hover:bg-[#282a30]"
+                        isCur ? "bg-[#183446] border-l-2 border-[#00beff]" : "hover:bg-[#282a30]"
                       }`}
                     >
                       <div className="mt-0.5 text-[#80858e]">
@@ -146,7 +137,6 @@ export default function SummaryTab({
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
                       </div>
-
                       <div className="flex-1 flex flex-col">
                         <div className="flex items-center gap-2">
                           <span className={`text-xs font-bold ${isCur ? "text-[#00beff]" : "text-white"}`}>
@@ -158,11 +148,8 @@ export default function SummaryTab({
                             </span>
                           )}
                         </div>
-                        <p className="text-[11px] text-[#80858e] leading-snug mt-0.5">
-                          {opt.desc}
-                        </p>
+                        <p className="text-[11px] text-[#80858e] leading-snug mt-0.5">{opt.desc}</p>
                       </div>
-
                       {isCur && (
                         <svg className="w-4 h-4 text-[#00beff] mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -175,13 +162,11 @@ export default function SummaryTab({
             )}
           </div>
 
-          {/* Language pill */}
           <span className="text-[11px] font-semibold text-[#80858e] bg-[#202126] px-2.5 py-1.5 rounded border border-[#32343d]">
             US EN
           </span>
         </div>
 
-        {/* Copy Summary Button */}
         <button
           onClick={handleCopy}
           className="flex items-center gap-1.5 bg-[#1b2b38] hover:bg-[#203648] text-[#00beff] font-semibold text-xs px-3 py-1.5 rounded border border-[#00beff]/30 transition-all cursor-pointer shadow-sm"
@@ -193,13 +178,11 @@ export default function SummaryTab({
         </button>
       </div>
 
-      {/* Feature notice banner (matching screenshot 3) */}
       <div className="flex items-center gap-2 bg-[#2d2511] border border-[#785b1c] px-3 py-2 rounded text-xs text-[#eab308] font-medium">
         <span>✨</span>
         <span>NEW: Customize this summary by selecting different templates above</span>
       </div>
 
-      {/* Summary Content Body */}
       {isGenerating ? (
         <div className="py-12 flex flex-col items-center justify-center gap-2 text-center text-[#80858e]">
           <div className="w-6 h-6 border-2 border-[#00beff] border-t-transparent rounded-full animate-spin" />
@@ -208,17 +191,32 @@ export default function SummaryTab({
       ) : currentSummary?.content ? (
         <div className="prose prose-invert max-w-none text-sm leading-relaxed text-white/90 space-y-3 pt-2">
           {currentSummary.content.split("\n\n").map((block, idx) => {
-            if (block.startsWith("#") || block.includes("Meeting Purpose") || block.includes("Key Takeaways") || block.includes("Topics") || block.includes("TL;DR") || block.includes("Decisions Made")) {
+            const trimmed = block.trim();
+
+            // A block is a header if: single line, short, doesn't start with a
+            // bullet marker, and doesn't end like a sentence. This generalizes
+            // across all templates (Meeting Purpose, Prospect, Pain Points,
+            // Progress Updates, etc.) instead of hardcoding specific header text.
+            const isHeader =
+              !trimmed.includes("\n") &&
+              !trimmed.startsWith("-") &&
+              !trimmed.startsWith("*") &&
+              trimmed.length > 0 &&
+              trimmed.length < 50 &&
+              !trimmed.endsWith(".") &&
+              !trimmed.endsWith(",");
+
+            if (isHeader) {
               return (
                 <div key={idx} className="pt-2">
                   <h4 className="text-sm font-bold text-white tracking-wide border-b border-[#28292d] pb-1 mb-2">
-                    {block.replace(/^#+\s*/, "").replace(/\*\*/g, "")}
+                    {trimmed.replace(/^#+\s*/, "").replace(/\*\*/g, "")}
                   </h4>
                 </div>
               );
             }
 
-            if (block.includes("\n- ") || block.startsWith("- ") || block.startsWith("* ")) {
+            if (block.includes("\n- ") || trimmed.startsWith("- ") || trimmed.startsWith("* ")) {
               const bullets = block.split("\n").filter((l) => l.trim());
               return (
                 <ul key={idx} className="list-disc pl-5 space-y-1.5 text-xs text-white/85">

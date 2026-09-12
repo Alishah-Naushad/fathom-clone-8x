@@ -3,14 +3,96 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
 const TEMPLATE_PROMPTS: Record<string, string> = {
-  enhanced:
-    "Summarize this meeting transcript into: a short TL;DR (2-3 sentences), key discussion points as bullets, and any decisions made.",
-  sales:
-    "Summarize this sales call into: prospect's stated pain points, objections raised, budget/timeline signals if mentioned, and next steps.",
-  standup:
-    "Summarize this standup into three sections: what was completed, what's planned next, and any blockers raised, grouped by person.",
-  one_on_one:
-    "Summarize this 1:1 into: main topics discussed, any feedback given (both directions), and career/growth notes if mentioned.",
+  enhanced: `Summarize this meeting transcript in this exact structure, using these exact section headers on their own line:
+
+Meeting Purpose
+
+One or two sentences on why this meeting happened.
+
+Key Takeaways
+
+- 3-5 bullet points, the most important outcomes or facts from the call
+
+Topics
+
+For each major topic discussed, write the topic name as its own line, then 2-4 bullet points under it with specifics.
+
+Next Steps
+
+- Bullet points, one per action, phrased as "Person: does what"`,
+
+  sales: `Summarize this sales call in this exact structure, using these exact section headers on their own line. If something wasn't discussed, write "Not discussed." under that header — don't skip the header.
+
+Prospect
+
+Name and company if mentioned.
+
+Call Context
+
+One sentence on what this call was for.
+
+Pain Points
+
+The prospect's stated problems or needs.
+
+Specific Requirements
+
+- Bullet points of concrete asks or requirements mentioned
+
+Objections
+
+Any pushback, concerns, or hesitations raised.
+
+Timeline
+
+Any mentioned deadlines or urgency.
+
+Next Steps
+
+- Bullet points of agreed next actions
+
+Questions We Asked
+
+Questions the seller asked the prospect, or "None."
+
+Questions They Asked
+
+Questions the prospect asked, or "None."`,
+
+  standup: `Summarize this standup transcript in this exact structure, using these exact section headers on their own line, grouped per person where relevant:
+
+Progress Updates
+
+For each person, one or two bullet points on what they completed.
+
+Current Tasks
+
+For each person, one or two bullet points on what they're working on next.
+
+Impediments
+
+Any blockers raised, or "None noted."`,
+
+  one_on_one: `Summarize this 1:1 meeting in this exact structure, using these exact section headers on their own line:
+
+Meeting Purpose
+
+One sentence on what this 1:1 covered.
+
+Updates
+
+- Check-in: brief personal/work status if mentioned
+- Progress on priorities since last meeting
+- Priorities until next meeting
+- Any blockers or requests for help, or "None indicated."
+
+Topics
+
+For each topic discussed, write the topic name as its own line, then 1-3 bullet points under it.
+
+Next Steps
+
+- Bullet points, one per action`,
 };
 
 function sleep(ms: number) {
@@ -38,31 +120,59 @@ export async function generateSummary(transcript: string, template: string) {
 
     const prompt = `${TEMPLATE_PROMPTS[template] ?? TEMPLATE_PROMPTS.enhanced}
 
-Also extract clear action items as a separate list, each with "text" and "owner" (use null for owner if not identifiable).
+After the summary, on a new line, write exactly: ===ACTION_ITEMS===
+Then list clear action items, one per line, in this format: text | owner
+Use "none" for owner if not identifiable. If there are no action items, write exactly: none
 
-Return ONLY valid JSON in exactly this shape, no markdown code fences, no preamble:
-{"summary": "...", "actionItems": [{"text": "...", "owner": "..." }]}
+Do not use JSON. Do not wrap anything in markdown code fences. Just write the summary directly, then the marker, then the action items.
 
 Transcript:
 ${transcript}`;
 
     const result = await model.generateContent(prompt);
-    const text = result.response.text();
-    const clean = text.replace(/```json|```/g, "").trim();
-    return JSON.parse(clean);
+    const text = result.response.text().trim();
+
+    const [summaryPart, actionItemsPart] = text.split("===ACTION_ITEMS===");
+    const summary = (summaryPart ?? text).trim();
+
+    const actionItems =
+      !actionItemsPart || actionItemsPart.trim().toLowerCase() === "none"
+        ? []
+        : actionItemsPart
+            .trim()
+            .split("\n")
+            .filter((line) => line.trim())
+            .map((line) => {
+              const [itemText, owner] = line.split("|").map((s) => s.trim());
+              return {
+                text: itemText.replace(/^[-*]\s*/, ""),
+                owner: owner && owner.toLowerCase() !== "none" ? owner : null,
+              };
+            });
+
+    return { summary, actionItems };
   });
 }
 
-export async function generateTranscript(description: string) {
+export async function generateTranscript(description: string, durationMinutes: number) {
   return withRetry(async () => {
     const model = genAI.getGenerativeModel({ model: "gemini-3.5-flash-lite" });
+    const totalSeconds = durationMinutes * 60;
 
     const prompt = `Write a realistic meeting transcript for: ${description}
+
+This meeting lasts ${durationMinutes} minutes (${totalSeconds} seconds) total. Timestamps MUST be spread realistically across the FULL duration — the first line should be near [00:00] and the last line should be near [${Math.floor(durationMinutes)}:${String(totalSeconds % 60).padStart(2, "0")}]. Do not compress everything into the first minute.
 
 Format each line exactly like this, one per line, nothing else:
 [MM:SS] SpeakerName: what they said
 
-Make it sound like real spoken conversation — natural pauses, some back-and-forth, occasional short replies or interruptions. Do not add any preamble, headers, markdown, or explanation. Start directly with the first line and end with the last line of dialogue.`;
+Rules:
+- The [MM:SS] timestamp appears ONLY ONCE at the very start of the line. Never repeat or restate the timestamp anywhere inside the spoken text itself.
+- If a sentence is interrupted, end that line with an em dash (—) instead of a period, and have the next line (a different speaker) start immediately, even at the same or nearly the same timestamp.
+- Use natural, real spoken conversation — filler words, trailing off, short reactive replies, genuine interruption.
+- NEVER put more than one [MM:SS] timestamp on a single line. If two people speak at nearly the same time, write them as two separate consecutive lines, each with exactly one timestamp of its own — never combine two timestamps into one line.
+
+Do not add any preamble, headers, markdown, or explanation. Start directly with the first line and end with the last line of dialogue.`;
 
     const result = await model.generateContent(prompt);
     return result.response.text().trim();
