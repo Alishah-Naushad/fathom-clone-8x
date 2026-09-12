@@ -3,18 +3,38 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
 const TEMPLATE_PROMPTS: Record<string, string> = {
-    enhanced:
-        "Summarize this meeting transcript into: a short TL;DR (2-3 sentences), key discussion points as bullets, and any decisions made.",
-    sales:
-        "Summarize this sales call into: prospect's stated pain points, objections raised, budget/timeline signals if mentioned, and next steps.",
-    standup:
-        "Summarize this standup into three sections: what was completed, what's planned next, and any blockers raised, grouped by person.",
-    one_on_one:
-        "Summarize this 1:1 into: main topics discussed, any feedback given (both directions), and career/growth notes if mentioned.",
+  enhanced:
+    "Summarize this meeting transcript into: a short TL;DR (2-3 sentences), key discussion points as bullets, and any decisions made.",
+  sales:
+    "Summarize this sales call into: prospect's stated pain points, objections raised, budget/timeline signals if mentioned, and next steps.",
+  standup:
+    "Summarize this standup into three sections: what was completed, what's planned next, and any blockers raised, grouped by person.",
+  one_on_one:
+    "Summarize this 1:1 into: main topics discussed, any feedback given (both directions), and career/growth notes if mentioned.",
 };
 
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function withRetry<T>(fn: () => Promise<T>, retries = 3): Promise<T> {
+  for (let attempt = 0; attempt < retries; attempt++) {
+    try {
+      return await fn();
+    } catch (err: any) {
+      const is429 = err?.status === 429;
+      if (!is429 || attempt === retries - 1) throw err;
+      const waitMs = 8000 * (attempt + 1); // 8s, 16s, 24s backoff
+      console.log(`Rate limited, waiting ${waitMs / 1000}s before retry...`);
+      await sleep(waitMs);
+    }
+  }
+  throw new Error("Unreachable");
+}
+
 export async function generateSummary(transcript: string, template: string) {
-    const model = genAI.getGenerativeModel({ model: "gemini-3.6-flash" });
+  return withRetry(async () => {
+    const model = genAI.getGenerativeModel({ model: "gemini-3.5-flash-lite" });
 
     const prompt = `${TEMPLATE_PROMPTS[template] ?? TEMPLATE_PROMPTS.enhanced}
 
@@ -30,10 +50,12 @@ ${transcript}`;
     const text = result.response.text();
     const clean = text.replace(/```json|```/g, "").trim();
     return JSON.parse(clean);
+  });
 }
 
 export async function generateTranscript(description: string) {
-    const model = genAI.getGenerativeModel({ model: "gemini-3.6-flash" });
+  return withRetry(async () => {
+    const model = genAI.getGenerativeModel({ model: "gemini-3.5-flash-lite" });
 
     const prompt = `Write a realistic meeting transcript for: ${description}
 
@@ -44,4 +66,5 @@ Make it sound like real spoken conversation — natural pauses, some back-and-fo
 
     const result = await model.generateContent(prompt);
     return result.response.text().trim();
+  });
 }
