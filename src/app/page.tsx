@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import Image from "next/image";
 
 export default function FathomDashboard() {
   const [activeTab, setActiveTab] = useState("My Calls");
@@ -87,46 +86,9 @@ export default function FathomDashboard() {
 
       {/* Dashboard Main Content Area */}
       <main className="flex-1 px-6 pt-5 pb-12">
-        {activeTab === "My Calls" && (
-          <section className="flex flex-col gap-3">
-            {/* Section Header */}
-            <h2 className="text-sm font-bold text-white tracking-normal">Today</h2>
-
-            {/* Call Recordings Grid */}
-            <div className="flex flex-wrap gap-6">
-              <div className="group flex flex-col gap-1.5 w-full max-w-[315px] cursor-pointer">
-                {/* Real Video Thumbnail Container */}
-                <div className="relative aspect-[16/9] w-full rounded overflow-hidden bg-[#212124]">
-                  <Image
-                    src="/test-call-thumb.png"
-                    alt="Test call recording"
-                    fill
-                    sizes="(max-width: 768px) 100vw, 315px"
-                    className="object-cover"
-                    priority
-                  />
-                  {/* Duration Badge */}
-                  <span className="absolute bottom-1.5 right-1.5 bg-black/90 text-white text-[11px] font-bold px-1.5 py-0.5 rounded">
-                    1 min
-                  </span>
-                </div>
-
-                {/* Call Title */}
-                <div className="flex flex-col pt-0.5">
-                  <span className="text-xs font-semibold text-white">
-                    Test call
-                  </span>
-                </div>
-              </div>
-            </div>
-          </section>
-        )}
-
-        {activeTab !== "My Calls" && (
-          <div className="py-20 flex flex-col items-center justify-center text-center text-[#80858e]">
-            <p className="text-sm">No recordings in {activeTab}</p>
-          </div>
-        )}
+        <div className="py-20 flex flex-col items-center justify-center text-center text-[#80858e]">
+          <p className="text-sm">No recordings in {activeTab}</p>
+        </div>
       </main>
     </div>
   );
