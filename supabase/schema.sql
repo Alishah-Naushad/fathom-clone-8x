@@ -9,6 +9,8 @@ create table meetings (
   created_at timestamptz default now()
 );
 
+alter table meetings add column thumbnail_url text;
+
 create table transcript_lines (
   id uuid primary key default gen_random_uuid(),
   meeting_id uuid not null references meetings(id) on delete cascade,
