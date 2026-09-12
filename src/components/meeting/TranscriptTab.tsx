@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useRef, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 
 export interface TranscriptLine {
@@ -31,8 +31,12 @@ export default function TranscriptTab({
 }: TranscriptTabProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [copied, setCopied] = useState(false);
+  const [autoScroll, setAutoScroll] = useState(true);
   const [highlightModalLineId, setHighlightModalLineId] = useState<string | null>(null);
   const [highlightNote, setHighlightNote] = useState("");
+
+  const lineRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const formatTimestamp = (totalSeconds: number) => {
     const mins = Math.floor(totalSeconds / 60);
@@ -49,6 +53,30 @@ export default function TranscriptTab({
         l.speaker.toLowerCase().includes(query)
     );
   }, [lines, searchQuery]);
+
+  // Find currently active speaking line based on currentTime
+  const activeLineId = useMemo(() => {
+    if (lines.length === 0) return null;
+    // Find the last line whose timestamp is <= currentTime
+    const pastLines = lines.filter((l) => l.timestamp_seconds <= currentTime);
+    if (pastLines.length > 0) {
+      return pastLines[pastLines.length - 1].id;
+    }
+    return lines[0].id;
+  }, [lines, currentTime]);
+
+  // Auto-scroll to active line smoothly as video progresses
+  useEffect(() => {
+    if (!autoScroll || !activeLineId || searchQuery.trim()) return;
+
+    const el = lineRefs.current[activeLineId];
+    if (el) {
+      el.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }
+  }, [activeLineId, autoScroll, searchQuery]);
 
   const handleCopyTranscript = () => {
     const raw = lines
@@ -83,24 +111,46 @@ export default function TranscriptTab({
   };
 
   return (
-    <div className="flex flex-col gap-4 py-3">
-      {/* Top Toolbar: Search Transcript & Copy Transcript Button */}
+    <div ref={containerRef} className="flex flex-col gap-4 py-3">
+      {/* Top Toolbar: Search Transcript, Auto-scroll Toggle & Copy Transcript Button */}
       <div className="flex items-center justify-between gap-3 flex-wrap">
-        <div className="relative flex-1 max-w-xs">
-          <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-[#80858e]">
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
+        <div className="flex items-center gap-3 flex-1 max-w-md">
+          {/* Search input */}
+          <div className="relative flex-1">
+            <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-[#80858e]">
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search Transcript"
+              className="w-full bg-[#202126] text-xs text-white placeholder-[#80858e] pl-8 pr-3 py-1.5 rounded-md border border-[#32343d] focus:outline-none focus:border-[#00beff]/50"
+            />
           </div>
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search Transcript"
-            className="w-full bg-[#202126] text-xs text-white placeholder-[#80858e] pl-8 pr-3 py-1.5 rounded-md border border-[#32343d] focus:outline-none focus:border-[#00beff]/50"
-          />
+
+          {/* Auto-scroll toggle pill */}
+          <button
+            onClick={() => setAutoScroll(!autoScroll)}
+            className={`flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1.5 rounded-md border transition-all cursor-pointer select-none ${
+              autoScroll
+                ? "bg-[#183446] text-[#00beff] border-[#00beff]/40 shadow-xs"
+                : "bg-[#202126] text-[#80858e] border-[#32343d] hover:text-white"
+            }`}
+            title="Automatically scroll transcript as video plays"
+          >
+            <span
+              className={`w-1.5 h-1.5 rounded-full ${
+                autoScroll ? "bg-[#00beff] animate-pulse" : "bg-[#80858e]"
+              }`}
+            />
+            <span>Auto-scroll</span>
+          </button>
         </div>
 
+        {/* Copy Transcript Button */}
         <button
           onClick={handleCopyTranscript}
           className="flex items-center gap-1.5 bg-[#1b2b38] hover:bg-[#203648] text-[#00beff] font-semibold text-xs px-3 py-1.5 rounded border border-[#00beff]/30 transition-all cursor-pointer shadow-sm"
@@ -121,22 +171,42 @@ export default function TranscriptTab({
         <div className="flex flex-col gap-4">
           {filteredLines.map((line) => {
             const isHighlighted = highlightLineIds.includes(line.id);
-            const isCurrent =
-              Math.abs(currentTime - line.timestamp_seconds) <= 4;
+            const isActive = activeLineId === line.id;
 
             return (
-              <div key={line.id} className="flex flex-col gap-1 group/line">
+              <div
+                key={line.id}
+                ref={(el) => {
+                  lineRefs.current[line.id] = el;
+                }}
+                className={`flex flex-col gap-1 group/line rounded-lg transition-all duration-300 ${
+                  isActive ? "scale-[1.008]" : ""
+                }`}
+              >
                 {/* Speaker & Timestamp */}
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => onJumpToTime?.(line.timestamp_seconds)}
-                    className="text-[11px] font-mono font-medium text-[#80858e] hover:text-[#00beff] transition-colors cursor-pointer"
+                    className={`text-[11px] font-mono font-medium transition-colors cursor-pointer ${
+                      isActive
+                        ? "text-[#00beff] font-bold"
+                        : "text-[#80858e] hover:text-[#00beff]"
+                    }`}
                   >
                     [{formatTimestamp(line.timestamp_seconds)}]
                   </button>
-                  <span className="text-xs font-bold text-white/90">
+                  <span
+                    className={`text-xs font-bold ${
+                      isActive ? "text-white" : "text-white/85"
+                    }`}
+                  >
                     {line.speaker}
                   </span>
+                  {isActive && (
+                    <span className="text-[10px] text-[#00beff] bg-[#183446] px-1.5 py-0.2 rounded font-semibold animate-pulse">
+                      Playing
+                    </span>
+                  )}
                 </div>
 
                 {/* Highlight Tag header if highlighted */}
@@ -168,8 +238,8 @@ export default function TranscriptTab({
                     className={`flex-1 p-3 rounded-lg text-xs leading-relaxed transition-all cursor-pointer ${
                       isHighlighted
                         ? "bg-[#0284c7] text-white border-l-4 border-[#00beff] shadow-md"
-                        : isCurrent
-                        ? "bg-[#282a32] text-white ring-1 ring-[#00beff]/50"
+                        : isActive
+                        ? "bg-[#282b34] text-white ring-2 ring-[#00beff]/60 border-l-4 border-[#00beff] shadow-lg"
                         : "bg-[#202126] text-white/90 hover:bg-[#262830] border border-[#2b2c34]"
                     }`}
                   >
