@@ -1,6 +1,6 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
 const TEMPLATE_PROMPTS: Record<string, string> = {
   enhanced:
@@ -34,7 +34,7 @@ async function withRetry<T>(fn: () => Promise<T>, retries = 3): Promise<T> {
 
 export async function generateSummary(transcript: string, template: string) {
   return withRetry(async () => {
-    const model = genAI.getGenerativeModel({ model: "gemini-3.5-flash-lite" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     const prompt = `${TEMPLATE_PROMPTS[template] ?? TEMPLATE_PROMPTS.enhanced}
 
@@ -55,7 +55,7 @@ ${transcript}`;
 
 export async function generateTranscript(description: string) {
   return withRetry(async () => {
-    const model = genAI.getGenerativeModel({ model: "gemini-3.5-flash-lite" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     const prompt = `Write a realistic meeting transcript for: ${description}
 
@@ -63,6 +63,32 @@ Format each line exactly like this, one per line, nothing else:
 [MM:SS] SpeakerName: what they said
 
 Make it sound like real spoken conversation — natural pauses, some back-and-forth, occasional short replies or interruptions. Do not add any preamble, headers, markdown, or explanation. Start directly with the first line and end with the last line of dialogue.`;
+
+    const result = await model.generateContent(prompt);
+    return result.response.text().trim();
+  });
+}
+
+export async function askFathomQuestion(
+  transcript: string,
+  question: string,
+  summary?: string
+) {
+  return withRetry(async () => {
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+    const prompt = `You are Fathom AI, an intelligent meeting assistant. Answer the user's question accurately, concisely, and directly based on this meeting's context, summary, and transcript.
+
+Meeting Summary (if available):
+${summary || "None"}
+
+Full Meeting Transcript:
+${transcript}
+
+User Question:
+${question}
+
+Provide a direct, helpful answer in clean markdown format (using bullet points and bold highlights when relevant).`;
 
     const result = await model.generateContent(prompt);
     return result.response.text().trim();
