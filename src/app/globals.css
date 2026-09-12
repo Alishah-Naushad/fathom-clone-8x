@@ -1,26 +1,52 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #1a1a1a;
+  --foreground: #ffffff;
+  
+  /* Fathom Color Scheme */
+  --fathom-bg: #1a1a1a;
+  --fathom-header: #212124;
+  --fathom-search: #2d2c31;
+  --fathom-search-placeholder: #80858e;
+  --fathom-search-border: #3c3b42;
+  --fathom-cyan: #00beff;
+  --fathom-cyan-hover: #00a8e6;
+  --fathom-cyan-active: #0093cc;
+  --fathom-text-primary: #ffffff;
+  --fathom-text-secondary: #9da3ae;
+  --fathom-text-muted: #80858e;
+  --fathom-card: #212124;
+  --fathom-card-hover: #29292d;
+  --fathom-badge: rgba(0, 0, 0, 0.85);
+  --fathom-border: #2e2f34;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --color-fathom-bg: var(--fathom-bg);
+  --color-fathom-header: var(--fathom-header);
+  --color-fathom-search: var(--fathom-search);
+  --color-fathom-search-placeholder: var(--fathom-search-placeholder);
+  --color-fathom-search-border: var(--fathom-search-border);
+  --color-fathom-cyan: var(--fathom-cyan);
+  --color-fathom-cyan-hover: var(--fathom-cyan-hover);
+  --color-fathom-cyan-active: var(--fathom-cyan-active);
+  --color-fathom-text-primary: var(--fathom-text-primary);
+  --color-fathom-text-secondary: var(--fathom-text-secondary);
+  --color-fathom-text-muted: var(--fathom-text-muted);
+  --color-fathom-card: var(--fathom-card);
+  --color-fathom-card-hover: var(--fathom-card-hover);
+  --color-fathom-badge: var(--fathom-badge);
+  --color-fathom-border: var(--fathom-border);
+  
+  --font-sans: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
-  background: var(--background);
+  background-color: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
