@@ -19,43 +19,10 @@ interface SummaryTabProps {
 }
 
 const TEMPLATE_OPTIONS = [
-  {
-    id: "enhanced",
-    name: "Enhanced",
-    badge: "FREE",
-    desc: "Capture any call's insights and key takeaways.",
-    icon: "message",
-  },
-  {
-    id: "sales",
-    name: "Sales",
-    desc: "Unpack a prospect's needs, challenges, and buying journey.",
-    icon: "chart",
-  },
-  {
-    id: "standup",
-    name: "Engineering Standup",
-    desc: "What was completed, what's planned next, and blockers.",
-    icon: "users",
-  },
-  {
-    id: "one_on_one",
-    name: "1:1 Meeting",
-    desc: "Main topics discussed, feedback given, and career growth.",
-    icon: "smile",
-  },
-  {
-    id: "sales_meddpicc",
-    name: "Sales - MEDDPICC",
-    desc: "Notes based on the popular sales methodology.",
-    icon: "trend",
-  },
-  {
-    id: "customer_success",
-    name: "Customer Success",
-    desc: "Experiences, challenges, goals, and Q&A.",
-    icon: "smile",
-  },
+  { id: "enhanced", name: "Enhanced", badge: "FREE", desc: "Capture any call's insights and key takeaways.", icon: "message" },
+  { id: "sales", name: "Sales", desc: "Unpack a prospect's needs, challenges, and buying journey.", icon: "chart" },
+  { id: "standup", name: "Engineering Standup", desc: "What was completed, what's planned next, and blockers.", icon: "users" },
+  { id: "one_on_one", name: "1:1 Meeting", desc: "Main topics discussed, feedback given, and career growth.", icon: "smile" },
 ];
 
 export default function SummaryTab({
@@ -101,7 +68,7 @@ export default function SummaryTab({
           // Store in Supabase
           const { data: inserted } = await supabase
             .from("summaries")
-            .insert({
+            .upsert({
               meeting_id: meetingId,
               template: templateId,
               content: data.summary,

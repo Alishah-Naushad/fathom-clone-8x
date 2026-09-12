@@ -1,6 +1,6 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
 const TEMPLATE_PROMPTS: Record<string, string> = {
   enhanced:
@@ -34,7 +34,7 @@ async function withRetry<T>(fn: () => Promise<T>, retries = 3): Promise<T> {
 
 export async function generateSummary(transcript: string, template: string) {
   return withRetry(async () => {
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-3.5-flash-lite" });
 
     const prompt = `${TEMPLATE_PROMPTS[template] ?? TEMPLATE_PROMPTS.enhanced}
 
@@ -55,7 +55,7 @@ ${transcript}`;
 
 export async function generateTranscript(description: string) {
   return withRetry(async () => {
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-3.5-flash-lite" });
 
     const prompt = `Write a realistic meeting transcript for: ${description}
 
@@ -75,7 +75,7 @@ export async function askFathomQuestion(
   summary?: string
 ) {
   return withRetry(async () => {
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-3.5-flash-lite" });
 
     const prompt = `You are Fathom AI, an intelligent meeting assistant. Answer the user's question accurately, concisely, and directly based on this meeting's context, summary, and transcript.
 
