@@ -1,0 +1,47 @@
+import { GoogleGenerativeAI } from "@google/generative-ai";
+
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+
+const TEMPLATE_PROMPTS: Record<string, string> = {
+    enhanced:
+        "Summarize this meeting transcript into: a short TL;DR (2-3 sentences), key discussion points as bullets, and any decisions made.",
+    sales:
+        "Summarize this sales call into: prospect's stated pain points, objections raised, budget/timeline signals if mentioned, and next steps.",
+    standup:
+        "Summarize this standup into three sections: what was completed, what's planned next, and any blockers raised, grouped by person.",
+    one_on_one:
+        "Summarize this 1:1 into: main topics discussed, any feedback given (both directions), and career/growth notes if mentioned.",
+};
+
+export async function generateSummary(transcript: string, template: string) {
+    const model = genAI.getGenerativeModel({ model: "gemini-3.6-flash" });
+
+    const prompt = `${TEMPLATE_PROMPTS[template] ?? TEMPLATE_PROMPTS.enhanced}
+
+Also extract clear action items as a separate list, each with "text" and "owner" (use null for owner if not identifiable).
+
+Return ONLY valid JSON in exactly this shape, no markdown code fences, no preamble:
+{"summary": "...", "actionItems": [{"text": "...", "owner": "..." }]}
+
+Transcript:
+${transcript}`;
+
+    const result = await model.generateContent(prompt);
+    const text = result.response.text();
+    const clean = text.replace(/```json|```/g, "").trim();
+    return JSON.parse(clean);
+}
+
+export async function generateTranscript(description: string) {
+    const model = genAI.getGenerativeModel({ model: "gemini-3.6-flash" });
+
+    const prompt = `Write a realistic meeting transcript for: ${description}
+
+Format each line exactly like this, one per line, nothing else:
+[MM:SS] SpeakerName: what they said
+
+Make it sound like real spoken conversation — natural pauses, some back-and-forth, occasional short replies or interruptions. Do not add any preamble, headers, markdown, or explanation. Start directly with the first line and end with the last line of dialogue.`;
+
+    const result = await model.generateContent(prompt);
+    return result.response.text().trim();
+}
