@@ -1,22 +1,28 @@
 import React from "react";
+import Link from "next/link";
 
 interface LogoProps {
   className?: string;
   onClick?: () => void;
+  href?: string;
 }
 
-export default function Logo({ className = "", onClick }: LogoProps) {
-  return (
+export default function Logo({
+  className = "",
+  onClick,
+  href = "/",
+}: LogoProps) {
+  const content = (
     <div
       onClick={onClick}
-      className={`flex items-center gap-2.5 cursor-pointer select-none ${className}`}
+      className={`inline-flex items-center gap-2.5 cursor-pointer select-none group ${className}`}
     >
-      <span className="text-2xl font-extrabold tracking-widest text-white">
+      <span className="text-2xl font-extrabold tracking-widest text-white group-hover:text-white/95 transition-colors">
         FATHOM
       </span>
       {/* Cyan Wave Logo Mark */}
       <svg
-        className="w-6 h-6 text-[#00beff]"
+        className="w-6 h-6 text-[#00beff] group-hover:brightness-110 transition-all"
         viewBox="0 0 24 24"
         fill="currentColor"
         aria-hidden="true"
@@ -28,4 +34,14 @@ export default function Logo({ className = "", onClick }: LogoProps) {
       </svg>
     </div>
   );
+
+  if (href) {
+    return (
+      <Link href={href} className="inline-flex">
+        {content}
+      </Link>
+    );
+  }
+
+  return content;
 }
