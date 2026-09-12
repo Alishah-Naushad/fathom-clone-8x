@@ -32,7 +32,8 @@ export default function MeetingHeader({
 
   const handleCopyLink = () => {
     if (typeof window !== "undefined") {
-      navigator.clipboard.writeText(window.location.href);
+      const shareUrl = `${window.location.origin}/share/${window.location.pathname.split("/").pop()}`;
+      navigator.clipboard.writeText(shareUrl);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
       onShare?.();
