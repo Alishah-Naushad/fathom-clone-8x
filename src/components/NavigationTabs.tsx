@@ -17,22 +17,22 @@ export default function NavigationTabs({
   onTabChange,
 }: NavigationTabsProps) {
   return (
-    <nav className="w-full bg-[#1a1a1a] px-6 pt-3.5 pb-0 flex items-center gap-6 border-b border-[#26272c]/40">
+    <nav className="w-full bg-[#1a1a1a] px-8 pt-4 pb-0 flex items-center gap-8 border-b border-[#26272c]/40">
       {tabs.map((tab) => {
         const isActive = activeTab === tab.id;
         return (
           <button
             key={tab.id}
             onClick={() => onTabChange(tab.id)}
-            className={`text-sm font-medium pb-2 transition-colors relative cursor-pointer ${
+            className={`text-base font-semibold pb-3 transition-colors relative cursor-pointer tracking-wide ${
               isActive
                 ? "text-[#00beff]"
-                : "text-white/95 hover:text-white"
+                : "text-white/90 hover:text-white"
             }`}
           >
             {tab.label}
             {isActive && (
-              <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#00beff]" />
+              <span className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#00beff] rounded-t-xs" />
             )}
           </button>
         );

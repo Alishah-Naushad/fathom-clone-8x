@@ -9,12 +9,14 @@ export default function Logo({ className = "", onClick }: LogoProps) {
   return (
     <div
       onClick={onClick}
-      className={`flex items-center gap-2 cursor-pointer select-none ${className}`}
+      className={`flex items-center gap-2.5 cursor-pointer select-none ${className}`}
     >
-      <span className="text-xl font-bold tracking-wider text-white">FATHOM</span>
+      <span className="text-2xl font-extrabold tracking-widest text-white">
+        FATHOM
+      </span>
       {/* Cyan Wave Logo Mark */}
       <svg
-        className="w-5 h-5 text-[#00beff]"
+        className="w-6 h-6 text-[#00beff]"
         viewBox="0 0 24 24"
         fill="currentColor"
         aria-hidden="true"

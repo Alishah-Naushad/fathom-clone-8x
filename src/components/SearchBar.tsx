@@ -14,10 +14,10 @@ export default function SearchBar({
   className = "",
 }: SearchBarProps) {
   return (
-    <div className={`relative flex-1 max-w-sm ${className}`}>
-      <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-[#80858e]">
+    <div className={`relative flex-1 max-w-md ${className}`}>
+      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#80858e]">
         <svg
-          className="w-3.5 h-3.5"
+          className="w-4.5 h-4.5"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -36,7 +36,7 @@ export default function SearchBar({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full bg-[#2d2c31] text-xs text-white placeholder-[#80858e] pl-8 pr-3 py-1.5 rounded border border-transparent focus:outline-none focus:border-[#00beff]/50 transition-colors"
+        className="w-full bg-[#2d2c31] text-sm text-white placeholder-[#80858e] pl-10 pr-4 py-2 rounded-md border border-transparent focus:outline-none focus:border-[#00beff]/60 focus:ring-1 focus:ring-[#00beff]/40 transition-all"
       />
     </div>
   );

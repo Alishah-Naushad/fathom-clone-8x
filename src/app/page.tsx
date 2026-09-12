@@ -31,7 +31,7 @@ export default function FathomDashboard() {
       />
 
       {/* Main Content Area */}
-      <main className="flex-1 px-6 pt-5 pb-12">
+      <main className="flex-1 px-8 pt-6 pb-12">
         <EmptyState tabName={activeTab} />
       </main>
     </div>

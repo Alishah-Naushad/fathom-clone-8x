@@ -14,7 +14,7 @@ export default function Header({
   onLogoClick,
 }: HeaderProps) {
   return (
-    <header className="w-full bg-[#212124] px-6 py-2.5 flex items-center gap-6 border-b border-[#28292d]">
+    <header className="w-full bg-[#212124] px-8 py-3.5 flex items-center gap-8 border-b border-[#28292d]">
       <Logo onClick={onLogoClick} />
       <SearchBar value={searchQuery} onChange={onSearchChange} />
     </header>
