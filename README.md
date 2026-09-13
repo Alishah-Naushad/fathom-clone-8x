@@ -32,11 +32,11 @@ The application faithfully replicates Fathom's signature dark-mode design langua
 - **Interactive Meeting Cards:** Grid of past meetings displaying custom video thumbnails, duration badges, meeting titles, formatted dates, and attendee pills.
 - **Real-Time Client Filtering:** Live instant filtering across meeting titles and participant names.
 - **Navigation Tabs:** Quick filtering across categories: `My Calls`, `Team Calls`, `Playlists`, `Alerts`, and `Deals`.
-- **Top Navigation Bar:** Persistent global header with Fathom wave logo, universal search input, view switcher, and user avatar.
+- **Top Navigation Bar:** Persistent global header with Fathom wave logo and universal search input.
 
 ### 2. 🎬 Video Player & Timestamp Scrubbing (`/meetings/[id]`)
-- **Custom Video Controls:** Smooth timeline scrubber, Play/Pause toggling, elapsed/total time readout, and volume control.
-- **Variable Playback Speed:** One-click speed switcher (`1x`, `1.25x`, `1.5x`, `2x`).
+- **Custom Video Controls:** Smooth timeline scrubber, Play/Pause toggling, and elapsed/total time readout.
+- **Variable Playback Speed:** One-click speed switcher (`0.75x`, `1x`, `1.25x`, `1.5x`, `2x`).
 - **Bidirectional Video Sync:** Scrubbing or playing the video automatically updates the current playback time used to synchronize transcripts and highlights.
 
 ### 3. 📝 Multi-Template AI Summaries (`SummaryTab`)
@@ -49,9 +49,9 @@ The application faithfully replicates Fathom's signature dark-mode design langua
 - **Copy & Share:** Quick copy summary markdown to clipboard.
 
 ### 4. 💬 Interactive Transcript with Synced Auto-Scroll (`TranscriptTab`)
-- **Timestamp Synchronized Auto-Scroll:** As video playback progresses, the transcript automatically centers and highlights the active speaker line. Includes smart user-scroll detection that gracefully pauses auto-scrolling during manual inspection and provides a quick resume toggle.
+- **Timestamp Synchronized Auto-Scroll:** As video playback progresses, the transcript automatically centers and highlights the active speaker line. Auto-scroll can be toggled on or off via a dedicated control, so users can browse the transcript manually without the view being pulled back to the current playhead.
 - **Click-to-Seek:** Clicking any timestamp badge (`[MM:SS]`) instantly seeks the video to that exact second.
-- **In-Transcript Search:** Real-time search query filter highlighting matching text directly within transcript dialogue lines.
+- **In-Transcript Search:** Filters transcript lines matching the search query in real time.
 - **Create Highlights & Annotations:** Highlight any spoken dialogue line and add a team note, automatically bookmarked into the meeting sidebar.
 
 ### 5. 🤖 "Ask Fathom" AI Assistant (`AskFathomTab`)
@@ -65,7 +65,7 @@ The application faithfully replicates Fathom's signature dark-mode design langua
 - **Highlights & Notes:** Chronological list of saved moments with timestamp jumping.
 
 ### 7. 🔍 Global Transcript & Meeting Search (`/search?q=...`)
-- **Full-Text Multi-Table Search:** Search across all meeting titles, attendee names, and spoken dialogue lines simultaneously using PostgreSQL `ilike` queries.
+- **Global Meeting & Transcript Search:** Combines client-side title/attendee matching with a targeted PostgreSQL `ilike` query against transcript content.
 - **Timestamped Match Snippets:** Search results display the exact matching dialogue snippet along with speaker attribution and clickable timestamp.
 
 ### 8. 🔗 Public Shareable Meeting View (`/share/[id]`)
@@ -266,7 +266,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser to view the 
 To handle Gemini API rate limits (HTTP 429) gracefully during batch seeding and real-time generation, requests pass through an exponential retry handler `withRetry` with automatic interval escalation (8s, 16s, 24s).
 
 ### ⚡ Synced Auto-Scroll Engine (`TranscriptTab.tsx`)
-Transcript lines calculate their active state against the parent video's `currentTime`. Active lines scroll smoothly into view via `scrollIntoView({ behavior: "smooth", block: "center" })`. If the user manually scrolls up or down, auto-scrolling automatically disengages to prevent jarring view shifts, and displays an unobtrusive floating button to snap back to the current video time.
+Transcript lines calculate their active state against the parent video's `currentTime`. Active lines scroll smoothly into view via `scrollIntoView({ behavior: "smooth", block: "center" })`. Auto-scroll can be toggled on or off via a dedicated control, so users can browse the transcript manually without the view being pulled back to the current playhead.
 
 ### 🔒 Strict Security & RLS Policies
 All database tables enforce PostgreSQL Row Level Security (`RLS`). Read operations and user interaction updates (such as toggling action item completion) are securely handled with scoped policies.
