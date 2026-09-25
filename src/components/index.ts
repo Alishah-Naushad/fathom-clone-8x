@@ -4,5 +4,6 @@ export { default as Header } from "./Header";
 export { default as NavigationTabs } from "./NavigationTabs";
 export { default as EmptyState } from "./EmptyState";
 export { default as MeetingCard } from "./MeetingCard";
+export { default as GoogleSignInButton } from "./GoogleSignInButton";
 export type { TabItem } from "./NavigationTabs";
 export type { MeetingItem } from "./MeetingCard";

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Header, NavigationTabs, EmptyState, MeetingCard, TabItem, MeetingItem } from "@/components";
+import { Header, NavigationTabs, EmptyState, MeetingCard, TabItem, MeetingItem, GoogleSignInButton } from "@/components";
 import { supabase } from "@/lib/supabase";
 
 const TABS: TabItem[] = [
@@ -41,6 +41,11 @@ export default function FathomDashboard() {
   return (
     <div className="min-h-screen bg-[#1a1a1a] text-white flex flex-col font-sans">
       <Header searchQuery={searchQuery} onSearchChange={setSearchQuery} />
+
+      {/* TEMPORARY — testing OAuth flow, will move to a proper landing page */}
+      <div className="p-4">
+        <GoogleSignInButton />
+      </div>
       <NavigationTabs tabs={TABS} activeTab={activeTab} onTabChange={setActiveTab} />
 
       <main className="flex-1 px-6 pt-5 pb-12">
