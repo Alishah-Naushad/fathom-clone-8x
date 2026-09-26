@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Header, NavigationTabs, EmptyState, MeetingCard, TabItem, MeetingItem, GoogleSignInButton } from "@/components";
+import { Header, NavigationTabs, EmptyState, MeetingCard, TabItem, MeetingItem } from "@/components";
 import { supabase } from "@/lib/supabase";
 
 const TABS: TabItem[] = [
@@ -13,7 +13,7 @@ const TABS: TabItem[] = [
   { id: "Deals", label: "Deals" },
 ];
 
-export default function FathomDashboard() {
+export default function HearkenDashboard() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<string>("My Calls");
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -39,22 +39,38 @@ export default function FathomDashboard() {
   );
 
   return (
-    <div className="min-h-screen bg-[#1a1a1a] text-white flex flex-col font-sans">
+    <div className="min-h-screen text-slate-100 flex flex-col font-sans selection:bg-cyan-500/30 selection:text-cyan-200">
       <Header searchQuery={searchQuery} onSearchChange={setSearchQuery} />
 
-      {/* TEMPORARY — testing OAuth flow, will move to a proper landing page */}
-      <div className="p-4">
-        <GoogleSignInButton />
-      </div>
       <NavigationTabs tabs={TABS} activeTab={activeTab} onTabChange={setActiveTab} />
 
-      <main className="flex-1 px-6 pt-5 pb-12">
+      <main className="flex-1 px-6 lg:px-8 pt-6 pb-16 max-w-7xl w-full mx-auto">
+        {/* AI Meeting status bar */}
+        <div className="flex items-center justify-between gap-4 mb-6 flex-wrap">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+              {activeTab}
+            </span>
+            <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 font-mono">
+              {filteredMeetings.length} calls
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2 text-xs text-slate-400">
+            <span className="inline-block w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+            <span>AI Meeting Notes & Auto-Transcription</span>
+          </div>
+        </div>
+
         {loading ? (
-          <p className="text-[#80858e] text-sm">Loading meetings...</p>
+          <div className="flex flex-col items-center justify-center py-24 gap-3 text-slate-400">
+            <div className="w-6 h-6 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin" />
+            <p className="text-xs font-medium">Synthesizing meeting library...</p>
+          </div>
         ) : filteredMeetings.length === 0 ? (
           <EmptyState tabName={activeTab} />
         ) : (
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
             {filteredMeetings.map((meeting) => (
               <MeetingCard
                 key={meeting.id}

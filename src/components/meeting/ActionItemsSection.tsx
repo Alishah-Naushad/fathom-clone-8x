@@ -75,16 +75,19 @@ export default function ActionItemsSection({
   };
 
   return (
-    <div className="flex flex-col gap-2.5 pt-2 pb-4 border-b border-[#2a2c32]">
+    <div className="flex flex-col gap-3 pt-2 pb-4 border-b border-indigo-500/15">
       <div className="flex items-center justify-between">
-        <h3 className="text-xs font-bold tracking-wider text-[#80858e] uppercase">
-          ACTION ITEMS
-        </h3>
+        <div className="flex items-center gap-1.5">
+          <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+          <h3 className="text-xs font-bold tracking-wider text-slate-300 uppercase">
+            ACTION ITEMS
+          </h3>
+        </div>
         <button
           onClick={() => setIsAdding(!isAdding)}
-          className="text-[11px] font-medium text-[#00beff] hover:underline cursor-pointer"
+          className="text-[11px] font-semibold text-cyan-400 hover:text-cyan-300 cursor-pointer transition-colors"
         >
-          {isAdding ? "Cancel" : "+ Add"}
+          {isAdding ? "Cancel" : "+ Add Item"}
         </button>
       </div>
 
@@ -94,13 +97,13 @@ export default function ActionItemsSection({
             type="text"
             value={newItemText}
             onChange={(e) => setNewItemText(e.target.value)}
-            placeholder="Action item description..."
-            className="flex-1 bg-[#28292f] text-xs text-white px-2.5 py-1.5 rounded border border-[#393b44] focus:outline-none focus:border-[#00beff]"
+            placeholder="Describe action item..."
+            className="flex-1 bg-[#181a2b] text-xs text-slate-100 px-3 py-1.5 rounded-lg border border-indigo-500/30 focus:outline-none focus:border-cyan-400"
             autoFocus
           />
           <button
             type="submit"
-            className="bg-[#00beff] text-black text-xs font-semibold px-3 py-1.5 rounded cursor-pointer hover:bg-[#00a8e6]"
+            className="bg-gradient-to-r from-cyan-400 to-cyan-500 text-slate-950 text-xs font-bold px-3 py-1.5 rounded-lg cursor-pointer hover:brightness-110"
           >
             Save
           </button>
@@ -108,9 +111,9 @@ export default function ActionItemsSection({
       )}
 
       {items.length === 0 ? (
-        <div className="bg-[#202126] rounded-md p-3 text-center border border-[#2c2e35]">
-          <p className="text-xs text-[#80858e] italic">
-            None detected. Add manually on transcript tab
+        <div className="bg-[#121422] rounded-xl p-3.5 text-center border border-indigo-500/15">
+          <p className="text-xs text-slate-400 italic">
+            No action items detected yet.
           </p>
         </div>
       ) : (
@@ -119,7 +122,7 @@ export default function ActionItemsSection({
             <div
               key={item.id}
               onClick={() => toggleItem(item.id, !!item.is_done)}
-              className={`flex items-start gap-2.5 p-2.5 rounded bg-[#202126] border border-[#2b2d35] cursor-pointer transition-colors hover:bg-[#25262c] ${
+              className={`flex items-start gap-2.5 p-3 rounded-xl bg-[#131523] border border-indigo-500/15 cursor-pointer transition-all hover:bg-[#181b2d] hover:border-cyan-500/30 ${
                 item.is_done ? "opacity-60" : ""
               }`}
             >
@@ -127,18 +130,18 @@ export default function ActionItemsSection({
                 type="checkbox"
                 checked={!!item.is_done}
                 onChange={() => {}}
-                className="mt-0.5 rounded text-[#00beff] focus:ring-0 cursor-pointer accent-[#00beff]"
+                className="mt-0.5 rounded text-cyan-400 focus:ring-0 cursor-pointer accent-cyan-400"
               />
               <div className="flex-1 flex flex-col gap-0.5">
                 <span
-                  className={`text-xs text-white/90 ${
-                    item.is_done ? "line-through text-white/50" : ""
+                  className={`text-xs text-slate-200 ${
+                    item.is_done ? "line-through text-slate-500" : ""
                   }`}
                 >
                   {item.text}
                 </span>
                 {item.owner && (
-                  <span className="text-[10px] text-[#00beff] font-medium">
+                  <span className="text-[10px] text-cyan-400 font-medium">
                     Owner: {item.owner}
                   </span>
                 )}

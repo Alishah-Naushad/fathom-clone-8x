@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Fathom",
-  description: "Fathom - AI Meeting Assistant",
+  title: "Hearken — AI Meeting Note Taker",
+  description: "AI Meeting Assistant — Record, Transcribe, and Summarize Video Meetings with Hearken AI",
 };
 
 export default function RootLayout({

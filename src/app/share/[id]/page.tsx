@@ -84,49 +84,59 @@ export default function SharePage({ params }: ShareMeetingProps) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#1a1a1a] flex items-center justify-center text-[#80858e] text-sm">
-        Loading shared meeting...
+      <div className="min-h-screen bg-[#090a10] flex items-center justify-center text-slate-400 text-sm">
+        <div className="flex items-center gap-2.5">
+          <div className="w-5 h-5 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin" />
+          <span>Loading shared meeting recording...</span>
+        </div>
       </div>
     );
   }
 
   if (!meeting) {
     return (
-      <div className="min-h-screen bg-[#1a1a1a] flex flex-col items-center justify-center gap-3 text-center">
-        <p className="text-[#80858e] text-sm">This shared meeting could not be found.</p>
-        <Link href="/" className="text-xs text-[#00beff] hover:underline">
-          Go to homepage
+      <div className="min-h-screen bg-[#090a10] flex flex-col items-center justify-center gap-3 text-center">
+        <p className="text-slate-400 text-sm">This shared meeting could not be found.</p>
+        <Link href="/" className="text-xs text-cyan-400 hover:underline">
+          Go to Hearken Home
         </Link>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#1a1a1a] text-white font-sans">
-      {/* Simple shared-view header, no search, no nav — this is a public read-only page */}
-      <header className="w-full bg-[#212124] px-8 py-3.5 border-b border-[#28292d] flex items-center gap-3">
-        <span className="text-white font-extrabold tracking-tight text-lg">FATHOM</span>
-        <span className="text-[10px] font-bold text-[#00beff] bg-[#1b2b38] border border-[#00beff]/30 px-2 py-0.5 rounded uppercase tracking-wider">
-          Shared Recording
+    <div className="min-h-screen text-slate-100 font-sans selection:bg-cyan-500/30 selection:text-cyan-200">
+      {/* Simple shared-view header */}
+      <header className="w-full bg-[#0d0f18]/80 backdrop-blur-xl px-6 lg:px-8 py-3.5 border-b border-indigo-500/10 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-1.5 h-3">
+            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+            <span className="w-1.5 h-3 bg-indigo-400 rounded-full" />
+            <span className="w-1.5 h-2 bg-purple-400 rounded-full" />
+          </div>
+          <span className="text-white font-black tracking-[0.2em] text-sm">HEARKEN</span>
+        </div>
+        <span className="text-[10px] font-bold text-cyan-300 bg-cyan-950/60 border border-cyan-500/30 px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+          Shared Meeting Recording
         </span>
       </header>
 
-      <main className="max-w-3xl mx-auto px-6 py-8 flex flex-col gap-8">
+      <main className="max-w-3xl mx-auto px-6 py-10 flex flex-col gap-8">
         {/* Meeting Title & Meta */}
-        <div className="flex flex-col gap-1 pb-4 border-b border-[#2a2c32]">
-          <h1 className="text-xl font-bold text-white tracking-tight">{meeting.title}</h1>
-          <span className="text-xs text-[#80858e]">
-            {formattedDate} · {meeting.duration_minutes} min
+        <div className="flex flex-col gap-2 pb-5 border-b border-indigo-500/15">
+          <h1 className="text-2xl font-bold text-slate-100 tracking-tight">{meeting.title}</h1>
+          <span className="text-xs text-slate-400">
+            {formattedDate} · {meeting.duration_minutes} min recording
           </span>
           {meeting.participants?.length > 0 && (
             <div className="flex items-center gap-1.5 flex-wrap pt-2">
-              <span className="text-[11px] font-semibold text-[#80858e] uppercase tracking-wider">
-                Attendees:
+              <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                Speakers:
               </span>
               {meeting.participants.map((p, idx) => (
                 <span
                   key={idx}
-                  className="text-[11px] bg-[#24262c] text-white/85 px-2 py-0.5 rounded border border-[#30333c]"
+                  className="text-[11px] bg-[#141624] text-slate-300 px-2.5 py-0.5 rounded-full border border-indigo-500/20"
                 >
                   {p}
                 </span>
@@ -136,41 +146,47 @@ export default function SharePage({ params }: ShareMeetingProps) {
         </div>
 
         {/* Summary */}
-        <section className="flex flex-col gap-2.5">
-          <h2 className="text-xs font-bold tracking-wider text-[#80858e] uppercase">Summary</h2>
+        <section className="flex flex-col gap-3">
+          <div className="flex items-center gap-2">
+            <span className="text-cyan-400">✦</span>
+            <h2 className="text-xs font-bold tracking-wider text-slate-300 uppercase">Neural Summary</h2>
+          </div>
           {summary?.content ? (
-            <div className="prose prose-invert max-w-none text-sm leading-relaxed text-white/90 space-y-3">
+            <div className="prose prose-invert max-w-none text-sm leading-relaxed text-slate-300 space-y-3 p-5 rounded-2xl bg-[#111322]/80 border border-indigo-500/20">
               {summary.content.split("\n\n").map((block, idx) => (
-                <p key={idx} className="text-xs text-white/85 leading-relaxed">
+                <p key={idx} className="text-xs text-slate-300 leading-relaxed">
                   {block}
                 </p>
               ))}
             </div>
           ) : (
-            <p className="text-xs text-[#80858e] italic">No summary available.</p>
+            <p className="text-xs text-slate-400 italic">No summary available.</p>
           )}
         </section>
 
         {/* Read-only Transcript */}
         <section className="flex flex-col gap-3">
-          <h2 className="text-xs font-bold tracking-wider text-[#80858e] uppercase">Transcript</h2>
+          <div className="flex items-center gap-2">
+            <span className="text-purple-400">⚡</span>
+            <h2 className="text-xs font-bold tracking-wider text-slate-300 uppercase">Meeting Transcript</h2>
+          </div>
           <div className="flex flex-col gap-3">
             {transcriptLines.map((line) => (
-              <div key={line.id} className="flex flex-col gap-1">
+              <div key={line.id} className="flex flex-col gap-1 p-3 rounded-xl bg-[#111322]/50 border border-indigo-500/10">
                 <div className="flex items-center gap-2">
-                  <span className="text-[11px] font-mono text-[#80858e]">
+                  <span className="text-[11px] font-mono text-cyan-400 font-medium">
                     [{formatTime(line.timestamp_seconds)}]
                   </span>
-                  <span className="text-xs font-bold text-white/90">{line.speaker}</span>
+                  <span className="text-xs font-bold text-slate-200">{line.speaker}</span>
                 </div>
-                <p className="text-xs text-white/85 leading-relaxed pl-1">{line.text}</p>
+                <p className="text-xs text-slate-300 leading-relaxed pl-1">{line.text}</p>
               </div>
             ))}
           </div>
         </section>
 
-        <p className="text-[11px] text-[#80858e] text-center pt-4 border-t border-[#2a2c32]">
-          Shared via Fathom Clone — a rebuild project.
+        <p className="text-[11px] text-slate-500 text-center pt-6 border-t border-indigo-500/15">
+          Synthesized by Hearken — AI Meeting Note Taker.
         </p>
       </main>
     </div>

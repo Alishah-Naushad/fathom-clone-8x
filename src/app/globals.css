@@ -1,52 +1,82 @@
 @import "tailwindcss";
 
 :root {
-  --background: #1a1a1a;
-  --foreground: #ffffff;
+  --background: #090a10;
+  --foreground: #f8fafc;
   
-  /* Fathom Color Scheme */
-  --fathom-bg: #1a1a1a;
-  --fathom-header: #212124;
-  --fathom-search: #2d2c31;
-  --fathom-search-placeholder: #80858e;
-  --fathom-search-border: #3c3b42;
-  --fathom-cyan: #00beff;
-  --fathom-cyan-hover: #00a8e6;
-  --fathom-cyan-active: #0093cc;
-  --fathom-text-primary: #ffffff;
-  --fathom-text-secondary: #9da3ae;
-  --fathom-text-muted: #80858e;
-  --fathom-card: #212124;
-  --fathom-card-hover: #29292d;
-  --fathom-badge: rgba(0, 0, 0, 0.85);
-  --fathom-border: #2e2f34;
+  /* Hearken AI Voice Theme Tokens */
+  --hearken-bg: #090a10;
+  --hearken-surface: #11131f;
+  --hearken-surface-elevated: #161928;
+  --hearken-surface-hover: #1c2033;
+  --hearken-border: rgba(99, 102, 241, 0.15);
+  --hearken-border-glow: rgba(6, 182, 212, 0.4);
+  
+  /* Voice & Neural Accent Gradients */
+  --hearken-cyan: #00f2fe;
+  --hearken-cyan-hover: #38bdf8;
+  --hearken-indigo: #6366f1;
+  --hearken-purple: #a855f7;
+  
+  --hearken-text-primary: #ffffff;
+  --hearken-text-secondary: #94a3b8;
+  --hearken-text-muted: #64748b;
+  --hearken-badge: rgba(9, 10, 16, 0.85);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --color-fathom-bg: var(--fathom-bg);
-  --color-fathom-header: var(--fathom-header);
-  --color-fathom-search: var(--fathom-search);
-  --color-fathom-search-placeholder: var(--fathom-search-placeholder);
-  --color-fathom-search-border: var(--fathom-search-border);
-  --color-fathom-cyan: var(--fathom-cyan);
-  --color-fathom-cyan-hover: var(--fathom-cyan-hover);
-  --color-fathom-cyan-active: var(--fathom-cyan-active);
-  --color-fathom-text-primary: var(--fathom-text-primary);
-  --color-fathom-text-secondary: var(--fathom-text-secondary);
-  --color-fathom-text-muted: var(--fathom-text-muted);
-  --color-fathom-card: var(--fathom-card);
-  --color-fathom-card-hover: var(--fathom-card-hover);
-  --color-fathom-badge: var(--fathom-badge);
-  --color-fathom-border: var(--fathom-border);
+  --color-hearken-bg: var(--hearken-bg);
+  --color-hearken-surface: var(--hearken-surface);
+  --color-hearken-surface-elevated: var(--hearken-surface-elevated);
+  --color-hearken-surface-hover: var(--hearken-surface-hover);
+  --color-hearken-border: var(--hearken-border);
+  --color-hearken-border-glow: var(--hearken-border-glow);
+  --color-hearken-cyan: var(--hearken-cyan);
+  --color-hearken-cyan-hover: var(--hearken-cyan-hover);
+  --color-hearken-indigo: var(--hearken-indigo);
+  --color-hearken-purple: var(--hearken-purple);
+  --color-hearken-text-primary: var(--hearken-text-primary);
+  --color-hearken-text-secondary: var(--hearken-text-secondary);
+  --color-hearken-text-muted: var(--hearken-text-muted);
+  --color-hearken-badge: var(--hearken-badge);
   
   --font-sans: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-mono: var(--font-geist-mono);
 }
 
 body {
-  background-color: var(--background);
+  background-color: #090a10;
+  background-image: 
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(99, 102, 241, 0.15), transparent),
+    radial-gradient(ellipse 60% 40% at 90% 10%, rgba(6, 182, 212, 0.08), transparent),
+    radial-gradient(ellipse 50% 50% at 10% 90%, rgba(168, 85, 247, 0.06), transparent);
+  background-attachment: fixed;
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  min-height: 100vh;
 }
+
+/* Voice Equalizer animation */
+@keyframes voice-wave {
+  0%, 100% { height: 4px; }
+  50% { height: 16px; }
+}
+
+@keyframes voice-pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(6, 182, 212, 0.3), 0 0 30px rgba(99, 102, 241, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(6, 182, 212, 0.6), 0 0 50px rgba(99, 102, 241, 0.4);
+  }
+}
+
+.voice-wave-bar {
+  animation: voice-wave 1.2s ease-in-out infinite;
+}
+.voice-wave-bar:nth-child(2) { animation-delay: 0.15s; }
+.voice-wave-bar:nth-child(3) { animation-delay: 0.3s; }
+.voice-wave-bar:nth-child(4) { animation-delay: 0.45s; }
+.voice-wave-bar:nth-child(5) { animation-delay: 0.6s; }

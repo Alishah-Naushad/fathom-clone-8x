@@ -14,9 +14,9 @@ interface AskFathomTabProps {
 
 const SUGGESTED_PROMPTS = [
   "Propose insightful follow-up questions",
-  "Detail all timelines discussed",
-  "What would help make progress?",
-  "Describe the key stakeholders?",
+  "Detail all timelines & deadlines discussed",
+  "Summarize key decisions & consensus",
+  "Describe stakeholder perspectives & objections",
 ];
 
 export default function AskFathomTab({
@@ -72,7 +72,7 @@ export default function AskFathomTab({
         ...prev,
         {
           role: "assistant",
-          content: "Sorry, an error occurred while connecting to Fathom AI.",
+          content: "Sorry, an error occurred while connecting to Hearken AI.",
         },
       ]);
     } finally {
@@ -86,17 +86,25 @@ export default function AskFathomTab({
       <div className="flex-1 flex flex-col gap-4 overflow-y-auto max-h-[440px] pr-1">
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center text-center my-auto py-8 gap-5">
-            {/* Center Fathom Icon Circle */}
-            <div className="w-14 h-14 rounded-full bg-[#202228] border border-[#30333c] flex items-center justify-center shadow-lg">
-              <svg className="w-7 h-7 text-[#00beff]" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M4 14.5c0-.83.67-1.5 1.5-1.5h4c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5h-4c-.83 0-1.5-.67-1.5-1.5zm3.5-5c0-.83.67-1.5 1.5-1.5h7c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5h-7c-.83 0-1.5-.67-1.5-1.5zm4.5-5c0-.83.67-1.5 1.5-1.5h4.5c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5H13.5c-.83 0-1.5-.67-1.5-1.5z" />
-              </svg>
+            {/* Center Hearken Voice Orb */}
+            <div className="relative flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-500/20 via-indigo-500/25 to-purple-500/20 border border-cyan-500/40 shadow-[0_0_35px_rgba(6,182,212,0.25)]">
+              <div className="flex items-center gap-1 h-6">
+                <span className="w-1 h-4 bg-cyan-400 rounded-full" />
+                <span className="w-1 h-6 bg-indigo-400 rounded-full" />
+                <span className="w-1 h-5 bg-cyan-300 rounded-full" />
+                <span className="w-1 h-2.5 bg-purple-400 rounded-full" />
+              </div>
             </div>
 
             {/* Greeting Text */}
-            <h3 className="text-base font-bold text-white tracking-normal">
-              Hi, what can I tell you about this meeting?
-            </h3>
+            <div className="flex flex-col gap-1">
+              <h3 className="text-base font-bold text-slate-100 tracking-normal">
+                Hearken AI Meeting Assistant
+              </h3>
+              <p className="text-xs text-slate-400 max-w-sm">
+                Ask questions, summarize key decisions, or extract action items from this meeting.
+              </p>
+            </div>
 
             {/* Suggested Prompt Cards Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 w-full max-w-md pt-2">
@@ -104,8 +112,12 @@ export default function AskFathomTab({
                 <button
                   key={idx}
                   onClick={() => handleSend(prompt)}
-                  className="p-3 text-left text-xs text-white/90 bg-[#202126] hover:bg-[#282a32] border border-[#2e3038] hover:border-[#00beff]/50 rounded-lg transition-all cursor-pointer shadow-sm hover:scale-[1.01]"
+                  className="p-3 text-left text-xs text-slate-300 bg-[#121422] hover:bg-[#181b2e] border border-indigo-500/20 hover:border-cyan-500/50 rounded-xl transition-all cursor-pointer shadow-sm hover:shadow-[0_0_15px_rgba(6,182,212,0.1)] hover:scale-[1.01]"
                 >
+                  <div className="flex items-center gap-1.5 mb-1 text-cyan-400 text-[11px] font-semibold">
+                    <span>✦</span>
+                    <span>Prompt</span>
+                  </div>
                   {prompt}
                 </button>
               ))}
@@ -121,17 +133,15 @@ export default function AskFathomTab({
                 }`}
               >
                 {m.role === "assistant" && (
-                  <div className="w-6 h-6 rounded-full bg-[#1b2b38] border border-[#00beff]/40 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <svg className="w-3.5 h-3.5 text-[#00beff]" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M4 14.5c0-.83.67-1.5 1.5-1.5h4c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5h-4c-.83 0-1.5-.67-1.5-1.5zm3.5-5c0-.83.67-1.5 1.5-1.5h7c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5h-7c-.83 0-1.5-.67-1.5-1.5zm4.5-5c0-.83.67-1.5 1.5-1.5h4.5c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5H13.5c-.83 0-1.5-.67-1.5-1.5z" />
-                    </svg>
+                  <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-cyan-500 to-indigo-600 border border-cyan-400/40 flex items-center justify-center flex-shrink-0 mt-0.5 shadow-sm text-slate-950 font-black text-[10px]">
+                    H
                   </div>
                 )}
                 <div
-                  className={`p-3 rounded-lg text-xs leading-relaxed max-w-[85%] ${
+                  className={`p-3.5 rounded-xl text-xs leading-relaxed max-w-[85%] ${
                     m.role === "user"
-                      ? "bg-[#183446] text-white border border-[#00beff]/30"
-                      : "bg-[#202126] text-white/90 border border-[#2e3038] whitespace-pre-wrap"
+                      ? "bg-gradient-to-r from-cyan-950/60 to-indigo-950/60 text-slate-100 border border-cyan-500/40 shadow-sm"
+                      : "bg-[#131522] text-slate-200 border border-indigo-500/20 whitespace-pre-wrap shadow-sm"
                   }`}
                 >
                   {m.content}
@@ -140,9 +150,9 @@ export default function AskFathomTab({
             ))}
 
             {isLoading && (
-              <div className="flex gap-2 items-center text-xs text-[#80858e] pl-9">
-                <div className="w-4 h-4 border-2 border-[#00beff] border-t-transparent rounded-full animate-spin" />
-                <span>Thinking...</span>
+              <div className="flex gap-2.5 items-center text-xs text-cyan-300 pl-9">
+                <div className="w-4 h-4 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin" />
+                <span>Hearken is thinking...</span>
               </div>
             )}
             <div ref={messagesEndRef} />
@@ -156,24 +166,24 @@ export default function AskFathomTab({
           e.preventDefault();
           handleSend();
         }}
-        className="relative mt-4 flex items-center bg-[#202126] rounded-lg border border-[#30333c] focus-within:border-[#00beff]/60 transition-colors"
+        className="relative mt-4 flex items-center bg-[#131522] rounded-xl border border-indigo-500/30 focus-within:border-cyan-400/60 transition-colors shadow-inner"
       >
         <input
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Ask Fathom AI"
-          className="w-full bg-transparent text-xs text-white placeholder-[#80858e] pl-3.5 pr-11 py-2.5 rounded-lg focus:outline-none"
+          placeholder="Ask Hearken AI anything about this conversation..."
+          className="w-full bg-transparent text-xs text-slate-100 placeholder-slate-400 pl-4 pr-12 py-3 rounded-xl focus:outline-none"
         />
         <button
           type="submit"
           disabled={!input.trim() || isLoading}
-          className={`absolute right-1.5 p-1.5 rounded-md flex items-center justify-center transition-all ${
+          className={`absolute right-2 p-2 rounded-lg flex items-center justify-center transition-all ${
             input.trim() && !isLoading
-              ? "bg-[#00beff] text-black hover:bg-[#00a8e6] cursor-pointer"
-              : "bg-[#2d2f36] text-[#80858e] cursor-not-allowed"
+              ? "bg-gradient-to-r from-cyan-400 to-cyan-500 text-slate-950 hover:brightness-110 cursor-pointer shadow-[0_0_12px_rgba(6,182,212,0.4)]"
+              : "bg-slate-800 text-slate-500 cursor-not-allowed"
           }`}
-          title="Send"
+          title="Send message"
         >
           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 10l7-7m0 0l7 7m-7-7v18" />

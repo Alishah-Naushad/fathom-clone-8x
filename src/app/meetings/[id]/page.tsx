@@ -32,7 +32,7 @@ export default function MeetingDetailPage({ params }: MeetingDetailProps) {
   const [actionItems, setActionItems] = useState<ActionItem[]>([]);
   const [highlights, setHighlights] = useState<HighlightItem[]>([]);
 
-  const [activeSubTab, setActiveSubTab] = useState<"SUMMARY" | "TRANSCRIPT" | "ASK FATHOM">("SUMMARY");
+  const [activeSubTab, setActiveSubTab] = useState<"SUMMARY" | "TRANSCRIPT" | "ASK HEARKEN">("SUMMARY");
   const [currentTime, setCurrentTime] = useState<number>(0);
   const [searchQuery, setSearchQuery] = useState<string>("");
 
@@ -88,7 +88,6 @@ export default function MeetingDetailPage({ params }: MeetingDetailProps) {
 
         if (hErr) console.error("Error fetching highlights:", hErr);
         else {
-          // Attach timestamp from matching transcript line if present
           const mappedHighlights = (hData ?? []).map((h) => {
             const line = (tData ?? []).find((l) => l.id === h.transcript_line_id);
             return {
@@ -122,12 +121,12 @@ export default function MeetingDetailPage({ params }: MeetingDetailProps) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#1a1a1a] text-white flex flex-col font-sans">
+      <div className="min-h-screen text-slate-100 flex flex-col font-sans">
         <Header searchQuery={searchQuery} onSearchChange={setSearchQuery} />
-        <div className="flex-1 flex items-center justify-center py-32 text-center text-[#80858e] text-sm">
+        <div className="flex-1 flex items-center justify-center py-32 text-center text-slate-400 text-sm">
           <div className="flex flex-col items-center gap-3">
-            <div className="w-6 h-6 border-2 border-[#00beff] border-t-transparent rounded-full animate-spin" />
-            <p>Loading meeting recording & summary...</p>
+            <div className="w-7 h-7 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin" />
+            <p className="font-medium">Loading meeting recording & summary...</p>
           </div>
         </div>
       </div>
@@ -136,13 +135,13 @@ export default function MeetingDetailPage({ params }: MeetingDetailProps) {
 
   if (!meeting) {
     return (
-      <div className="min-h-screen bg-[#1a1a1a] text-white flex flex-col font-sans">
+      <div className="min-h-screen text-slate-100 flex flex-col font-sans">
         <Header searchQuery={searchQuery} onSearchChange={setSearchQuery} />
         <div className="flex-1 flex flex-col items-center justify-center gap-4 py-32 text-center">
-          <p className="text-[#80858e] text-sm">Meeting not found.</p>
+          <p className="text-slate-400 text-sm">Meeting not found.</p>
           <Link
             href="/"
-            className="text-xs text-[#00beff] bg-[#183446] px-4 py-2 rounded font-semibold hover:bg-[#204358] transition-colors"
+            className="text-xs text-slate-950 font-bold bg-cyan-400 hover:bg-cyan-300 px-4 py-2 rounded-lg transition-colors shadow-lg"
           >
             ← Back to All Recordings
           </Link>
@@ -152,15 +151,15 @@ export default function MeetingDetailPage({ params }: MeetingDetailProps) {
   }
 
   return (
-    <div className="min-h-screen bg-[#1a1a1a] text-white flex flex-col font-sans">
+    <div className="min-h-screen text-slate-100 flex flex-col font-sans">
       {/* Top Header Bar */}
       <Header searchQuery={searchQuery} onSearchChange={setSearchQuery} />
 
-      {/* Main Container - Responsive 2 Column Split matching screenshots */}
-      <main className="flex-1 w-full max-w-7xl mx-auto px-6 py-6 grid grid-cols-1 lg:grid-cols-[1fr_340px] xl:grid-cols-[1fr_380px] gap-8 items-start">
-        {/* Left / Main Column: Video Player + Sub-Tabs */}
-        <div className="flex flex-col gap-5 w-full">
-          {/* Top Video Player Container */}
+      {/* Main Container - 2 Column Split */}
+      <main className="flex-1 w-full max-w-7xl mx-auto px-6 lg:px-8 py-6 grid grid-cols-1 lg:grid-cols-[1fr_340px] xl:grid-cols-[1fr_380px] gap-8 items-start">
+        {/* Left Column: Video Player + Sub-Tabs */}
+        <div className="flex flex-col gap-6 w-full">
+          {/* Video Player */}
           <VideoPlayer
             thumbnailUrl={meeting.thumbnail_url || "/test-call-thumb.png"}
             durationMinutes={meeting.duration_minutes || 1}
@@ -169,23 +168,24 @@ export default function MeetingDetailPage({ params }: MeetingDetailProps) {
             title={meeting.title}
           />
 
-          {/* Sub-Tabs: SUMMARY | TRANSCRIPT | ASK FATHOM */}
-          <div className="flex items-center gap-8 border-b border-[#2a2c32] pt-1">
-            {(["SUMMARY", "TRANSCRIPT", "ASK FATHOM"] as const).map((tab) => {
+          {/* Sub-Tabs: SUMMARY | TRANSCRIPT | ASK HEARKEN */}
+          <div className="flex items-center gap-4 border-b border-indigo-500/15 pt-1">
+            {(["SUMMARY", "TRANSCRIPT", "ASK HEARKEN"] as const).map((tab) => {
               const isActive = activeSubTab === tab;
               return (
                 <button
                   key={tab}
                   onClick={() => setActiveSubTab(tab)}
-                  className={`text-xs font-bold pb-2.5 transition-colors relative cursor-pointer tracking-wider ${
+                  className={`text-xs font-bold pb-3 px-1 transition-all relative cursor-pointer tracking-wider flex items-center gap-1.5 ${
                     isActive
-                      ? "text-[#00beff]"
-                      : "text-white/80 hover:text-white"
+                      ? "text-cyan-300 font-extrabold"
+                      : "text-slate-400 hover:text-slate-200"
                   }`}
                 >
-                  {tab}
+                  {tab === "ASK HEARKEN" && <span className="text-cyan-400">✦</span>}
+                  <span>{tab}</span>
                   {isActive && (
-                    <span className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-[#00beff]" />
+                    <span className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-gradient-to-r from-cyan-400 to-indigo-500 rounded-full shadow-[0_0_10px_rgba(6,182,212,0.8)]" />
                   )}
                 </button>
               );
@@ -229,7 +229,7 @@ export default function MeetingDetailPage({ params }: MeetingDetailProps) {
               />
             )}
 
-            {activeSubTab === "ASK FATHOM" && (
+            {activeSubTab === "ASK HEARKEN" && (
               <AskFathomTab
                 transcriptText={fullTranscriptText}
                 summaryText={defaultSummaryText}
@@ -239,7 +239,7 @@ export default function MeetingDetailPage({ params }: MeetingDetailProps) {
         </div>
 
         {/* Right Sidebar: Meeting Info, Action Items, Annotations */}
-        <aside className="w-full flex flex-col gap-5 bg-[#17181c] p-5 rounded-lg border border-[#26282e] shadow-lg sticky top-6">
+        <aside className="w-full flex flex-col gap-5 bg-[#10121e]/90 p-5 rounded-2xl border border-indigo-500/20 shadow-2xl backdrop-blur-xl sticky top-20">
           <MeetingHeader
             title={meeting.title}
             meetingDate={meeting.meeting_date}
