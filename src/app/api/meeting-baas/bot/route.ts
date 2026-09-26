@@ -69,8 +69,8 @@ export async function POST(request: Request) {
         { status: response.status }
       );
     }
-
-    const botId = data?.bot_id;
+    console.log("Meeting BaaS raw response:", JSON.stringify(data));
+    const botId = data?.data?.bot_id ?? data?.bot_id;
 
     if (!botId) {
       console.error("Meeting BaaS response missing bot_id:", data);
