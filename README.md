@@ -203,7 +203,7 @@ erDiagram
     }
 
     GOOGLE_CONNECTIONS {
-        uuid user_id PK_FK
+        uuid user_id PK
         text access_token
         text refresh_token
         timestamptz expires_at
@@ -234,7 +234,7 @@ erDiagram
         timestamptz meeting_date
         int duration_minutes
         int participant_count
-        text[] participants
+        text_array participants
         text meeting_type
         text thumbnail_url
         text audio_url
@@ -246,7 +246,7 @@ erDiagram
         uuid meeting_id FK
         text speaker
         int timestamp_seconds
-        text text
+        text content
         int line_order
     }
 
@@ -261,7 +261,7 @@ erDiagram
     ACTION_ITEMS {
         uuid id PK
         uuid meeting_id FK
-        text text
+        text task_text
         text owner
         boolean is_done
     }
