@@ -160,7 +160,28 @@ export async function POST(request: Request) {
         .map((p: { name: string }) => p.name)
         .filter((name: string) => !name.toLowerCase().includes("notetaker"));
 
-      const durationMinutes = Math.max(1, Math.ceil((botData?.duration_seconds ?? 0) / 60));
+      // Accurately compute duration in seconds across all possible payload fields and transcript timestamps
+      const maxUtteranceEnd = utterances.reduce(
+        (max: number, u: { start?: number; end?: number }) =>
+          Math.max(max, u.end || u.start || 0),
+        0
+      );
+
+      const rawDurationSeconds = Number(
+        botData?.duration_seconds ||
+          botData?.duration ||
+          botData?.recording_duration ||
+          botData?.mp4_duration ||
+          transcriptData?.result?.metadata?.audio_duration ||
+          transcriptData?.result?.metadata?.total_speech_duration ||
+          maxUtteranceEnd ||
+          0
+      );
+
+      const durationMinutes = Math.max(
+        1,
+        Math.round(rawDurationSeconds / 60) || Math.ceil(maxUtteranceEnd / 60) || 1
+      );
 
       // 4. Create the real meeting row with real audio
       const { data: meetingRow, error: meetingErr } = await admin

@@ -47,14 +47,27 @@ export default function SharePage({ params }: ShareMeetingProps) {
         .select("*")
         .eq("id", meetingId)
         .single();
-      setMeeting(mData);
 
       const { data: tData } = await supabase
         .from("transcript_lines")
         .select("*")
         .eq("meeting_id", meetingId)
         .order("line_order", { ascending: true });
-      setTranscriptLines(tData ?? []);
+      const lines = tData ?? [];
+      setTranscriptLines(lines);
+
+      if (mData) {
+        if (lines.length > 0) {
+          const maxSec = Math.max(...lines.map((l) => Number(l.timestamp_seconds) || 0));
+          if (maxSec > 0) {
+            const calculatedMin = Math.max(1, Math.round(maxSec / 60));
+            if (!mData.duration_minutes || mData.duration_minutes <= 2 || calculatedMin > mData.duration_minutes) {
+              mData.duration_minutes = calculatedMin;
+            }
+          }
+        }
+        setMeeting(mData);
+      }
 
       if (mData) {
         const { data: sData } = await supabase

@@ -71,12 +71,43 @@ export default function HearkenHomePage() {
     setMeetingsLoading(true);
     const { data, error } = await supabase
       .from("meetings")
-      .select("*")
+      .select(`
+        *,
+        transcript_lines (
+          timestamp_seconds
+        )
+      `)
       .eq("user_id", user.id)
       .order("meeting_date", { ascending: false });
 
-    if (error) console.error("Failed to load meetings:", error);
-    else setMeetings(data ?? []);
+    if (error) {
+      console.error("Failed to load meetings:", error);
+    } else if (data) {
+      const formatted = data.map((m: any) => {
+        let durationMin = Number(m.duration_minutes) || 0;
+        if (m.transcript_lines && Array.isArray(m.transcript_lines) && m.transcript_lines.length > 0) {
+          const maxSec = Math.max(...m.transcript_lines.map((t: any) => Number(t.timestamp_seconds) || 0));
+          if (maxSec > 0) {
+            const calculatedMin = Math.max(1, Math.round(maxSec / 60));
+            // If stored duration is placeholder/short (e.g. <= 2) or calculated duration is higher
+            if (durationMin <= 2 || calculatedMin > durationMin) {
+              durationMin = calculatedMin;
+            }
+          }
+        }
+        return {
+          id: m.id,
+          title: m.title,
+          duration_minutes: durationMin,
+          thumbnail_url: m.thumbnail_url,
+          meeting_date: m.meeting_date,
+          participant_count: m.participant_count,
+          participants: m.participants,
+          meeting_type: m.meeting_type,
+        };
+      });
+      setMeetings(formatted);
+    }
     setMeetingsLoading(false);
   }, [user]);
 

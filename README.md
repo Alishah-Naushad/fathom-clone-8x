@@ -1,105 +1,235 @@
-# 🌊 Fathom AI Meeting Assistant Clone
+# 🎙️ Hearken — AI Meeting Note Taker
 
-An end-to-end, high-fidelity clone of **Fathom** — the AI meeting assistant that records, transcribes, summarizes, and answers questions about video meetings.
+**Hearken** is a full-stack, AI-powered meeting note taker that automatically joins calls, records audio, transcribes speaker-diarized dialogue, synthesizes multi-template meeting summaries, extracts action items, and powers an interactive meeting assistant.
 
-Built with **Next.js 16 (App Router)**, **React 19**, **TypeScript**, **Tailwind CSS v4**, **Supabase (PostgreSQL + RLS)**, and **Google Gemini AI**.
-
----
-
-## 🔗 Live Demo
-
-- **App:** [https://fathom-clone-8x.vercel.app](https://fathom-clone-8x.vercel.app)
-- **Repository:** [https://github.com/Alishah-Naushad/fathom-clone-8x](https://github.com/Alishah-Naushad/fathom-clone-8x)
-
-> **Note:** The live deployment opens directly to a seeded meeting library — no sign-up or login required.
+Built with **Next.js 16 (App Router)**, **React 19**, **TypeScript**, **Tailwind CSS v4**, **Supabase (PostgreSQL + RLS)**, **Google Gemini AI**, **Google Calendar API**, and **Meeting BaaS**.
 
 ---
 
-## 📸 Preview & Visual Aesthetics
+## 🔗 Live Demo & Links
 
-The application faithfully replicates Fathom's signature dark-mode design language:
-- **Canvas Base:** `#1a1a1a` (deep charcoal workspace)
-- **Elevated Surfaces & Header:** `#212124` / `#17181c` (sleek container contrast)
-- **Search & Interactive Pills:** `#2d2c31` / `#25262c`
-- **Brand Accent:** `#00beff` (vibrant cyan highlights and progress indicators)
-- **Subdued Meta Typography:** `#80858e` / `#6e737e`
+- **Live Application:** [https://fathom-clone-8x.vercel.app](https://fathom-clone-8x.vercel.app)
+- **GitHub Repository:** [https://github.com/Alishah-Naushad/fathom-clone-8x](https://github.com/Alishah-Naushad/fathom-clone-8x)
 
 ---
 
-## ✨ Key Features
+## 🏛️ System Architecture
 
-### 1. 🗂️ Dashboard & Meeting Library (`/`)
-- **Interactive Meeting Cards:** Grid of past meetings displaying custom video thumbnails, duration badges, meeting titles, formatted dates, and attendee pills.
-- **Real-Time Client Filtering:** Live instant filtering across meeting titles and participant names.
-- **Navigation Tabs:** Quick filtering across categories: `My Calls`, `Team Calls`, `Playlists`, `Alerts`, and `Deals`.
-- **Top Navigation Bar:** Persistent global header with Fathom wave logo and universal search input.
+```mermaid
+graph TD
+    subgraph Client ["Frontend (Next.js 16 App Router + React 19)"]
+        LP[Landing Page & Google OAuth]
+        MM[My Meetings Dashboard]
+        UM[Upcoming Meetings - Google Calendar]
+        LM[Live Meeting & In-Call Notes]
+        MD[Meeting Detail - Audio Player & Transcript]
+        AH[Ask Hearken - Grounded AI Assistant]
+        SR[Global Transcript Search]
+        SH[Public Shareable View]
+    end
 
-### 2. 🎬 Video Player & Timestamp Scrubbing (`/meetings/[id]`)
-- **Custom Video Controls:** Smooth timeline scrubber, Play/Pause toggling, and elapsed/total time readout.
-- **Variable Playback Speed:** One-click speed switcher (`0.75x`, `1x`, `1.25x`, `1.5x`, `2x`).
-- **Bidirectional Video Sync:** Scrubbing or playing the video automatically updates the current playback time used to synchronize transcripts and highlights.
+    subgraph Backend ["Serverless API & Webhooks"]
+        AuthRoute["/api/auth (Google OAuth + Supabase)"]
+        CalRoute["/api/calendar (Google Calendar Sync)"]
+        BotRoute["/api/meeting-baas/bot (Bot Dispatch)"]
+        WebhookRoute["/api/webhooks/meeting-baas (Audio & Diarization)"]
+        SummaryRoute["/api/summarize (Gemini Multi-Template Synthesis)"]
+        QARoute["/api/ask-fathom (Contextual Meeting Q&A)"]
+    end
 
-### 3. 📝 Multi-Template AI Summaries (`SummaryTab`)
-- **On-Demand AI Generation:** Generates and persists structured meeting notes powered by Gemini AI (`gemini-3.5-flash-lite`).
-- **Dynamic Template Switcher:** Instantly switch between specialized meeting summary templates:
-  - **Enhanced / General:** Meeting Purpose, Key Takeaways, Topics breakdown with sub-bullets, Next Steps.
-  - **Sales Demo:** Prospect Info, Call Context, Pain Points, Specific Requirements, Objections Raised, Timeline, Next Steps, and Q&A.
-  - **Engineering Standup:** Progress Updates, Current Tasks, and Impediments/Blockers per person.
-  - **1:1 Check-in:** Meeting Purpose, Status & Priorities, Blockers, Discussion Topics, and Next Steps.
-- **Copy & Share:** Quick copy summary markdown to clipboard.
+    subgraph ExternalServices ["External AI & Bot Infrastructure"]
+        GoogleCal["Google Calendar API"]
+        MBaas["Meeting BaaS (Bot Join, Audio & Gladia Diarization)"]
+        GeminiAI["Google Gemini AI (3.5 Flash Lite)"]
+    end
 
-### 4. 💬 Interactive Transcript with Synced Auto-Scroll (`TranscriptTab`)
-- **Timestamp Synchronized Auto-Scroll:** As video playback progresses, the transcript automatically centers and highlights the active speaker line. Auto-scroll can be toggled on or off via a dedicated control, so users can browse the transcript manually without the view being pulled back to the current playhead.
-- **Click-to-Seek:** Clicking any timestamp badge (`[MM:SS]`) instantly seeks the video to that exact second.
-- **In-Transcript Search:** Filters transcript lines matching the search query in real time.
-- **Create Highlights & Annotations:** Highlight any spoken dialogue line and add a team note, automatically bookmarked into the meeting sidebar.
+    subgraph Database ["Supabase PostgreSQL (RLS)"]
+        DB_Users[auth.users & google_connections]
+        DB_Bots[meeting_bots]
+        DB_Meetings[meetings]
+        DB_Transcripts[transcript_lines]
+        DB_Summaries[summaries]
+        DB_Actions[action_items]
+        DB_Highlights[highlights]
+    end
 
-### 5. 🤖 "Ask Fathom" AI Assistant (`AskFathomTab`)
-- **Grounded Q&A Chat:** Conversational AI grounded exclusively in the meeting's full transcript and structured summary.
-- **Quick Prompt Chips:** One-click instant questions such as *"What were the key decisions?"*, *"List all action items & owners"*, and *"Summarize prospect objections"*.
-- **Formatted Markdown Responses:** Direct answers formatted with clean bullet points and emphasis.
+    %% Client to Backend
+    LP --> AuthRoute
+    UM --> CalRoute
+    UM --> BotRoute
+    LM --> BotRoute
+    MD --> SummaryRoute
+    MD --> QARoute
+    SR --> DB_Transcripts
+    SH --> DB_Meetings
 
-### 6. 📋 Action Items & Sidebar Annotations
-- **Interactive Action Items:** Check off completed tasks in real time (persisted to Supabase) with assigned owner badges.
-- **Quick Add Item:** Add new follow-up tasks inline directly from the meeting sidebar.
-- **Highlights & Notes:** Chronological list of saved moments with timestamp jumping.
+    %% Backend to External
+    AuthRoute --> DB_Users
+    CalRoute --> GoogleCal
+    BotRoute --> MBaas
+    BotRoute --> DB_Bots
+    MBaas --> WebhookRoute
+    WebhookRoute --> DB_Meetings
+    WebhookRoute --> DB_Transcripts
+    WebhookRoute --> DB_Highlights
+    SummaryRoute --> GeminiAI
+    QARoute --> GeminiAI
 
-### 7. 🔍 Global Transcript & Meeting Search (`/search?q=...`)
-- **Global Meeting & Transcript Search:** Combines client-side title/attendee matching with a targeted PostgreSQL `ilike` query against transcript content.
-- **Timestamped Match Snippets:** Search results display the exact matching dialogue snippet along with speaker attribution and clickable timestamp.
-
-### 8. 🔗 Public Shareable Meeting View (`/share/[id]`)
-- **Clean Read-Only Layout:** Shareable standalone link presenting meeting metadata, structured summary, and full chronological transcript without editing controls or authentication barriers.
+    %% Backend to Database
+    SummaryRoute --> DB_Summaries
+    SummaryRoute --> DB_Actions
+```
 
 ---
 
-## 🏗️ Architecture & Tech Stack
+## 🔄 Meeting Bot & Webhook Processing Pipeline
 
-| Layer | Technology | Purpose |
-| :--- | :--- | :--- |
-| **Framework** | [Next.js 16 (App Router)](https://nextjs.org/) | React Server & Client Components, Turbopack, API Route Handlers |
-| **Language** | [TypeScript 5](https://www.typescriptlang.org/) | Strict type safety across database schemas, APIs, and components |
-| **Styling** | [Tailwind CSS v4](https://tailwindcss.com/) | Modern CSS variable theme tokens and utility classes |
-| **Database** | [Supabase (PostgreSQL)](https://supabase.com/) | Relational database with Foreign Keys, Cascades, Indexes & RLS |
-| **AI / LLM** | [Google Gemini AI](https://ai.google.dev/) | `@google/generative-ai` (`gemini-3.5-flash-lite`) with retry backoff |
-| **State & Sync** | React 19 Hooks (`useState`, `useEffect`, `useRef`, `useMemo`) | Real-time video/transcript synchronization and reactive UI updates |
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User
+    participant App as Hearken Dashboard
+    participant API as Next.js Backend
+    participant MB as Meeting BaaS
+    participant DB as Supabase DB
+    participant AI as Google Gemini
+
+    User->>App: Clicks "Send Notetaker" from Upcoming tab
+    App->>API: POST /api/meeting-baas/bot (meetingUrl, title, eventId)
+    API->>MB: Dispatch bot to Google Meet / Zoom / Teams
+    API->>DB: Insert meeting_bots record (status='sent')
+    MB-->>App: Bot status updates (joining_call -> in_call_recording)
+    
+    opt Live Highlights
+        User->>App: Adds timestamped notes during live call
+        App->>DB: Append to meeting_bots.live_notes
+    end
+
+    User->>MB: Call Ends
+    MB->>API: Webhook bot.status_change (status='transcribing')
+    API->>DB: Update meeting_bots status='transcribing'
+    App->>App: Live tab displays "AI Transcription & Diarization in Progress"
+    
+    MB->>API: Webhook bot.completed (transcriptionUrl, audioUrl, duration)
+    API->>MB: Fetch Gladia speaker-diarized transcript
+    API->>DB: 1. Insert meetings row (title, audio_url, real duration)
+    API->>DB: 2. Insert transcript_lines with speaker & timestamps
+    API->>DB: 3. Migrate live notes to timestamped highlights
+    API->>DB: 4. Mark meeting_bots status='completed'
+
+    User->>App: Opens meeting from "My Meetings"
+    App->>API: POST /api/summarize (Lazy Generation)
+    API->>AI: Generate structured summary + action items with owners
+    AI-->>API: Synthesized summary & tasks
+    API->>DB: Insert summaries & action_items
+    App-->>User: Renders full audio player, transcript sync & summary
+```
 
 ---
 
-## 🗄️ Database Schema
+## ✨ Core Features
 
-The database is built on PostgreSQL with Row Level Security (RLS) enabled on all tables:
+### 1. 🌐 Landing Page & Seamless Google Authentication
+- **Modern AI Aesthetic:** Vibrant electric cyan accents, glassmorphic containers, and glowing equalizer visualizers.
+- **Feature Highlights:** Interactive showcases detailing automated bot recording, multi-template AI notes, speaker diarization, and grounded Q&A.
+- **Google OAuth Login:** One-click Google sign-in with automatic calendar scope authorization that redirects directly into the workspace.
+
+### 2. 📅 Google Calendar & Upcoming Meetings (`/`)
+- **Automated Calendar Sync:** Fetches scheduled calls directly from Google Calendar via OAuth access tokens.
+- **Dynamic Time-Based Statuses:**
+  - `● In Progress` — Active calls happening right now (pulsing emerald badge).
+  - `Starting Soon` — Meetings scheduled within the next 15 minutes (amber badge).
+  - `Upcoming` — Scheduled future calls (indigo badge).
+  - `Ended` — Past calls (muted slate badge).
+- **One-Click Notetaker Dispatch:** Send Hearken's bot directly into scheduled Google Meet, Zoom, or Teams links.
+
+### 3. 🔴 Live Meeting Recording & Highlight Capture
+- **Real-Time Call Tracking:** Live elapsed timer tracking recording duration.
+- **In-Call Highlights:** Take quick notes and highlights during the call with elapsed timestamp markers.
+- **Transcribing Lifecycle Stage:** When the call ends, the card seamlessly transitions to an informative **Transcribing…** progress view before transferring directly to **My Meetings**.
+
+### 4. 🗂️ My Meetings Library
+- **Hearken Audio Covers:** Stylized audio recording covers with animated equalizer bars, duration tags, and formatted dates.
+- **Accurate Duration Calculation:** Resolves true call length from spoken dialogue timestamps and recording metadata.
+- **Instant Search Filter:** Real-time client-side search across meeting titles and participant names.
+
+### 5. 🎧 Audio Player & Synchronized Transcript (`/meetings/[id]`)
+- **Audio Recording Surface:** Scrubbable timeline player streaming from real audio recordings with animated soundwave visualizers (`voice-wave-bar`).
+- **Bidirectional Playback Sync:** Scrubbing audio updates the active transcript position, and clicking any transcript timestamp seeks audio instantly.
+- **Synced Auto-Scroll:** Transcript automatically follows the active speaker. Can be toggled on/off to allow manual transcript browsing.
+- **In-Transcript Keyword Search:** Fast filtering highlighting matches directly within dialogue lines.
+- **Inline Highlights & Annotations:** Create timestamped team notes bookmarked in the meeting sidebar.
+
+### 6. 📝 Multi-Template AI Summaries & Action Items
+- **Lazy AI Generation:** Generates structured notes on first view via Gemini AI to optimize quota and avoid processing unviewed calls.
+- **Dynamic Template Switching:**
+  - **Enhanced / General:** Executive Summary, Key Decisions, Topic Breakdown, Next Steps.
+  - **Sales Demo:** Prospect Profile, Pain Points, Requirements, Objections, Commercials & Next Steps.
+  - **Engineering Standup:** Progress Updates, Active Tasks, Blockers & Impediments per engineer.
+  - **1:1 Check-in:** Meeting Purpose, Priorities, Discussion Points, Feedback & Action Items.
+- **Action Items Checklist:** Interactive check-off tasks persisted in PostgreSQL with assigned owners and quick-add task support.
+
+### 7. 🤖 "Ask Hearken" Grounded Meeting Assistant
+- **Transcript-Grounded RAG:** Conversational Q&A answered strictly from the meeting transcript and summary.
+- **Prompt Suggestions:** One-click chips (*"What were the key decisions?"*, *"List action items & owners"*, *"Summarize objections"*).
+- **Formatted Markdown Output:** Clear answers with bullet points, structured formatting, and citations.
+
+### 8. 🔍 Global Transcript Search (`/search?q=...`)
+- **Universal Cross-Meeting Search:** Combines meeting metadata matching with PostgreSQL `ilike` transcript content searches.
+- **Timestamped Snippets:** Search results display matching spoken dialogue snippets with clickable timestamps that jump directly into the call.
+
+### 9. 🔗 Public Shareable Meeting View (`/share/[id]`)
+- **Frictionless Sharing:** Clean, read-only link presenting meeting metadata, structured summary, and full chronological transcript without requiring recipient login.
+
+---
+
+## 🗄️ Database Schema & Relationships
 
 ```mermaid
 erDiagram
-    MEETINGS ||--o{ TRANSCRIPT_LINES : "has lines"
-    MEETINGS ||--o{ SUMMARIES : "has templates"
-    MEETINGS ||--o{ ACTION_ITEMS : "has tasks"
-    MEETINGS ||--o{ HIGHLIGHTS : "has notes"
+    MEETINGS ||--o{ TRANSCRIPT_LINES : "contains"
+    MEETINGS ||--o{ SUMMARIES : "has"
+    MEETINGS ||--o{ ACTION_ITEMS : "generates"
+    MEETINGS ||--o{ HIGHLIGHTS : "stores"
     TRANSCRIPT_LINES ||--o{ HIGHLIGHTS : "references"
+    USERS ||--o{ MEETINGS : "owns"
+    USERS ||--o{ MEETING_BOTS : "dispatches"
+    USERS ||--o| GOOGLE_CONNECTIONS : "links"
+    MEETING_BOTS ||--o| MEETINGS : "creates"
+
+    USERS {
+        uuid id PK
+        text email
+    }
+
+    GOOGLE_CONNECTIONS {
+        uuid user_id PK_FK
+        text access_token
+        text refresh_token
+        timestamptz expires_at
+        text scope
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    MEETING_BOTS {
+        uuid id PK
+        uuid user_id FK
+        text bot_id UK
+        text meeting_url
+        text calendar_event_id
+        text title
+        text status
+        uuid meeting_id FK
+        timestamptz recording_started_at
+        jsonb live_notes
+        timestamptz created_at
+        timestamptz updated_at
+    }
 
     MEETINGS {
         uuid id PK
+        uuid user_id FK
         text title
         timestamptz meeting_date
         int duration_minutes
@@ -107,6 +237,7 @@ erDiagram
         text[] participants
         text meeting_type
         text thumbnail_url
+        text audio_url
         timestamptz created_at
     }
 
@@ -145,75 +276,36 @@ erDiagram
 
 ---
 
-## 📁 Project Structure
+## 🛠️ Tech Stack Matrix
 
-```
-├── .agents/                    # Agent orchestration and capture hook configuration
-├── public/                     # Static assets, logos, and default meeting thumbnails
-├── scripts/
-│   ├── capture.py              # Session audit & capture logging script
-│   └── seed.ts                 # Multi-meeting database seeder using Gemini AI
-├── src/
-│   ├── app/
-│   │   ├── api/
-│   │   │   ├── ask-fathom/     # AI meeting Q&A API endpoint
-│   │   │   │   └── route.ts
-│   │   │   └── summarize/      # AI meeting summary generation API endpoint
-│   │   │       └── route.ts
-│   │   ├── meetings/
-│   │   │   └── [id]/           # Meeting Detail view (Video, Tabs, Sidebar)
-│   │   │       └── page.tsx
-│   │   ├── search/             # Global meeting & transcript search
-│   │   │   └── page.tsx
-│   │   ├── share/
-│   │   │   └── [id]/           # Read-only public shareable link
-│   │   │       └── page.tsx
-│   │   ├── globals.css         # Tailwind v4 theme & Fathom dark mode tokens
-│   │   ├── layout.tsx          # Root HTML layout & font declarations
-│   │   └── page.tsx            # Dashboard / Home meeting library
-│   ├── components/
-│   │   ├── Header.tsx          # Universal navigation bar & search trigger
-│   │   ├── Logo.tsx            # Fathom SVG brand logo + wave mark
-│   │   ├── MeetingCard.tsx     # Dashboard grid meeting card component
-│   │   ├── NavigationTabs.tsx  # Dashboard category filter tabs
-│   │   ├── SearchBar.tsx       # Reusable search input component
-│   │   ├── EmptyState.tsx      # Reusable empty data state view
-│   │   ├── index.ts            # Component barrel exports
-│   │   └── meeting/            # Modular meeting detail components
-│   │       ├── ActionItemsSection.tsx  # Sidebar action item checklist
-│   │       ├── AnnotationsSection.tsx  # Sidebar timestamped highlights
-│   │       ├── AskFathomTab.tsx        # Conversational AI Q&A tab
-│   │       ├── MeetingHeader.tsx       # Meeting title, date & share action
-│   │       ├── SummaryTab.tsx          # Multi-template summary viewer & generator
-│   │       ├── TranscriptTab.tsx       # Synced auto-scrolling transcript
-│   │       ├── VideoPlayer.tsx         # Scrubbable custom video player
-│   │       └── index.ts                # Meeting component barrel exports
-│   └── lib/
-│       ├── gemini.ts           # Gemini API client, templates & retry backoff
-│       ├── supabase.ts         # Supabase public client for browser operations
-│       └── supabase-admin.ts   # Supabase Service Role client for scripts/seeding
-├── supabase/
-│   └── schema.sql              # PostgreSQL DDL, indices, and RLS policies
-├── package.json
-├── tsconfig.json
-└── README.md
-```
+| Layer | Technology | Purpose |
+| :--- | :--- | :--- |
+| **Framework** | [Next.js 16 (App Router)](https://nextjs.org/) | Server & Client Components, Route Handlers, Turbopack |
+| **Language** | [TypeScript 5](https://www.typescriptlang.org/) | End-to-end type safety across database, APIs, and UI |
+| **Styling** | [Tailwind CSS v4](https://tailwindcss.com/) | Custom design system with CSS variables & dark glassmorphism |
+| **Database** | [Supabase (PostgreSQL)](https://supabase.com/) | Relational database with Foreign Keys, Cascades, Indexes & RLS |
+| **Authentication** | [Supabase Auth](https://supabase.com/auth) | Google OAuth provider with Calendar API scopes |
+| **Meeting Bot** | [Meeting BaaS](https://meetingbaas.com/) | Automated call join, audio capture & Gladia speaker diarization |
+| **AI / LLM** | [Google Gemini AI](https://ai.google.dev/) | `@google/generative-ai` (`gemini-3.5-flash-lite`) with retry backoff |
+| **Calendar Sync** | [Google Calendar API](https://developers.google.com/calendar) | Retrieval of scheduled meetings and meeting links |
 
 ---
 
 ## 🚀 Getting Started
 
 ### 1. Prerequisites
-- **Node.js**: v18.18.0 or higher
+- **Node.js**: `v18.18.0` or higher
 - **Package Manager**: `npm`, `pnpm`, or `yarn`
-- **Supabase Account**: A free Supabase project
-- **Google AI Studio Key**: A free Gemini API Key from [Google AI Studio](https://aistudio.google.com/)
+- **Supabase Account**: A Supabase project with Google Auth enabled
+- **Google Cloud Console**: OAuth 2.0 credentials with `https://www.googleapis.com/auth/calendar.events.readonly` scope
+- **Google Gemini API Key**: Free key from [Google AI Studio](https://aistudio.google.com/)
+- **Meeting BaaS API Key**: API key from [Meeting BaaS](https://meetingbaas.com/)
 
 ---
 
 ### 2. Environment Configuration
 
-Create a `.env.local` file in the project root with the following variables:
+Create a `.env.local` file in the root directory:
 
 ```env
 # Supabase Configuration
@@ -222,68 +314,44 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
 SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key
 
 # Google Gemini AI Configuration
-GEMINI_API_KEY=your-google-gemini-api-key
+GEMINI_API_KEY=your-gemini-api-key
+
+# Meeting BaaS Configuration
+MEETING_BAAS_API_KEY=your-meeting-baas-api-key
 ```
 
 ---
 
 ### 3. Database Setup
 
-1. Open your **Supabase Dashboard** and navigate to the **SQL Editor**.
-2. Copy and paste the contents of `supabase/schema.sql`.
-3. Click **Run** to execute the script. This creates all necessary tables, constraints, cascade rules, indices, and RLS policies.
+1. Open your **Supabase Dashboard** and go to the **SQL Editor**.
+2. Run the SQL script located at `supabase/schema.sql`.
+3. This provisions all tables (`meetings`, `transcript_lines`, `summaries`, `action_items`, `highlights`, `meeting_bots`, `google_connections`), foreign key relationships, indexes, and Row Level Security (`RLS`) policies.
 
 ---
 
-### 4. Installation & Seeding
+### 4. Installation & Local Development
 
 ```bash
-# 1. Install dependencies
+# 1. Install project dependencies
 npm install
 
-# 2. Seed realistic meetings, full-duration transcripts, summaries, and action items
-npx tsx scripts/seed.ts
-```
-
-> **Note on Seeding:** The seed script uses Gemini AI to synthesize realistic multi-speaker dialogue spread accurately across each meeting's total duration (e.g., 15m, 30m, 55m), with realistic interruptions (`—`), filler words, and natural speech patterns.
-
----
-
-### 5. Running the Application
-
-```bash
-# Start Next.js development server
+# 2. Start Next.js development server
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser to view the application.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ---
 
-## 🛠️ Key Engineering Highlights
+## 🔒 Security & Privacy
 
-### 🔁 Resilient AI Backoff (`src/lib/gemini.ts`)
-To handle Gemini API rate limits (HTTP 429) gracefully during batch seeding and real-time generation, requests pass through an exponential retry handler `withRetry` with automatic interval escalation (8s, 16s, 24s).
-
-### ⚡ Synced Auto-Scroll Engine (`TranscriptTab.tsx`)
-Transcript lines calculate their active state against the parent video's `currentTime`. Active lines scroll smoothly into view via `scrollIntoView({ behavior: "smooth", block: "center" })`. Auto-scroll can be toggled on or off via a dedicated control, so users can browse the transcript manually without the view being pulled back to the current playhead.
-
-### 🔒 Strict Security & RLS Policies
-All database tables enforce PostgreSQL Row Level Security (`RLS`). Read operations and user interaction updates (such as toggling action item completion) are securely handled with scoped policies.
-
----
-
-## Scope & Deliberate Cuts
-
-Given the assignment's time constraints, the following were intentionally out of scope:
-
-- **No authentication or landing page.** The live link opens directly to a seeded meeting library, per the assignment's requirement that the link work for someone not signed in.
-- **No live meeting bot / real video capture.** Building a bot that joins Zoom/Meet/Teams and records audio/video is a multi-week infrastructure project on its own. Instead, all 6 seeded meetings use AI-generated transcripts (via Gemini) and static thumbnail images, with a scrubbable mock video player driving transcript sync.
-- Time saved on the above was reinvested into the AI summarization pipeline, multi-template switching, transcript UX, and the "Ask Fathom" Q&A feature.
-- **`.agent-logs/`** — Committed logs of AI agent prompts/responses used throughout development, per assignment requirements.
+- **Row Level Security (RLS):** All meeting data, transcripts, summaries, action items, and bot records are strictly scoped to the authenticated user via `auth.uid() = user_id`.
+- **Public Share Links:** Public shared URLs (`/share/[id]`) securely expose only the meeting's content without authentication barriers or modification permissions.
+- **Service Role Isolation:** Administrative database writes (webhook bot processing, background highlight migrations) execute via server-only clients, never exposing service keys to the browser.
 
 ---
 
 ## 📜 License
 
-This project is created for demonstration and educational purposes as a full-featured Fathom clone. All rights to the Fathom brand and visual identity belong to Fathom.
+Created for demonstration and educational purposes. All trademarks belong to their respective owners.

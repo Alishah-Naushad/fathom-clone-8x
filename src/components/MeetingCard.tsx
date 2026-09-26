@@ -30,6 +30,17 @@ export default function MeetingCard({ meeting, onClick }: MeetingCardProps) {
     }
   }, [meeting.meeting_date]);
 
+  const formattedDuration = React.useMemo(() => {
+    const mins = Math.round(meeting.duration_minutes || 0);
+    if (mins <= 0) return "";
+    if (mins >= 60) {
+      const h = Math.floor(mins / 60);
+      const m = mins % 60;
+      return m > 0 ? `${h}h ${m}m` : `${h}h`;
+    }
+    return `${mins}m`;
+  }, [meeting.duration_minutes]);
+
   return (
     <div
       onClick={() => onClick?.(meeting)}
@@ -69,9 +80,9 @@ export default function MeetingCard({ meeting, onClick }: MeetingCardProps) {
         </div>
 
         {/* Duration Badge bottom-right */}
-        {meeting.duration_minutes > 0 && (
+        {formattedDuration && (
           <span className="absolute bottom-2 right-2 bg-black/80 backdrop-blur-md text-white text-[11px] font-mono font-medium px-2 py-0.5 rounded-md border border-white/10 shadow">
-            {meeting.duration_minutes}m
+            {formattedDuration}
           </span>
         )}
 

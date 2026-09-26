@@ -50,9 +50,6 @@ export default function MeetingDetailPage({ params }: MeetingDetailProps) {
           .eq("id", meetingId)
           .single();
 
-        if (mErr) console.error("Error fetching meeting:", mErr);
-        else setMeeting(mData);
-
         // 2. Fetch transcript lines
         const { data: tData, error: tErr } = await supabase
           .from("transcript_lines")
@@ -61,7 +58,23 @@ export default function MeetingDetailPage({ params }: MeetingDetailProps) {
           .order("line_order", { ascending: true });
 
         if (tErr) console.error("Error fetching transcript lines:", tErr);
-        else setTranscriptLines(tData ?? []);
+        else {
+          const lines = tData ?? [];
+          setTranscriptLines(lines);
+
+          if (mData && lines.length > 0) {
+            const maxSec = Math.max(...lines.map((l) => Number(l.timestamp_seconds) || 0));
+            if (maxSec > 0) {
+              const calculatedMin = Math.max(1, Math.round(maxSec / 60));
+              if (!mData.duration_minutes || mData.duration_minutes <= 2 || calculatedMin > mData.duration_minutes) {
+                mData.duration_minutes = calculatedMin;
+              }
+            }
+          }
+        }
+
+        if (mErr) console.error("Error fetching meeting:", mErr);
+        else setMeeting(mData);
 
         // 3. Fetch summaries
         const { data: sData, error: sErr } = await supabase

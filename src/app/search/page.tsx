@@ -32,8 +32,39 @@ function SearchPageInner() {
   // Load all meetings once
   useEffect(() => {
     async function loadMeetings() {
-      const { data } = await supabase.from("meetings").select("*");
-      setMeetings(data ?? []);
+      const { data } = await supabase
+        .from("meetings")
+        .select(`
+          *,
+          transcript_lines (
+            timestamp_seconds
+          )
+        `);
+      if (data) {
+        const formatted = data.map((m: any) => {
+          let durationMin = Number(m.duration_minutes) || 0;
+          if (m.transcript_lines && Array.isArray(m.transcript_lines) && m.transcript_lines.length > 0) {
+            const maxSec = Math.max(...m.transcript_lines.map((t: any) => Number(t.timestamp_seconds) || 0));
+            if (maxSec > 0) {
+              const calculatedMin = Math.max(1, Math.round(maxSec / 60));
+              if (durationMin <= 2 || calculatedMin > durationMin) {
+                durationMin = calculatedMin;
+              }
+            }
+          }
+          return {
+            id: m.id,
+            title: m.title,
+            meeting_date: m.meeting_date,
+            duration_minutes: durationMin,
+            participants: m.participants,
+            thumbnail_url: m.thumbnail_url,
+          };
+        });
+        setMeetings(formatted);
+      } else {
+        setMeetings([]);
+      }
     }
     loadMeetings();
   }, []);
