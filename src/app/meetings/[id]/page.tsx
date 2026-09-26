@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Header } from "@/components";
 import {
   VideoPlayer,
+  AudioPlayer,
   MeetingHeader,
   ActionItemsSection,
   AnnotationsSection,
@@ -111,6 +112,62 @@ export default function MeetingDetailPage({ params }: MeetingDetailProps) {
     return transcriptLines.map((l) => `${l.speaker}: ${l.text}`).join("\n");
   }, [transcriptLines]);
 
+  // Lazily generate the default-template summary + action items the first
+  // time this meeting is opened, if it doesn't have one yet — this covers
+  // real bot-captured meetings, which no longer get a summary generated in
+  // the webhook (moved here to keep the webhook fast and avoid spending
+  // Gemini quota on meetings that might never be viewed).
+  useEffect(() => {
+    if (loading || !meeting) return;
+    if (summaries.length > 0) return; // already has at least one summary
+    if (!fullTranscriptText.trim()) return; // nothing to summarize yet
+
+    async function generateDefaultSummary() {
+      try {
+        const res = await fetch("/api/summarize", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            transcript: fullTranscriptText,
+            template: meeting.meeting_type || "enhanced",
+          }),
+        });
+        const data = await res.json();
+        if (!data?.summary) return;
+
+        const { data: inserted } = await supabase
+          .from("summaries")
+          .upsert({
+            meeting_id: meeting.id,
+            template: meeting.meeting_type || "enhanced",
+            content: data.summary,
+          })
+          .select()
+          .single();
+
+        if (inserted) setSummaries((prev) => [...prev, inserted]);
+
+        if (data.actionItems?.length) {
+          const { data: insertedItems } = await supabase
+            .from("action_items")
+            .insert(
+              data.actionItems.map((item: { text: string; owner: string | null }) => ({
+                meeting_id: meeting.id,
+                text: item.text,
+                owner: item.owner,
+              }))
+            )
+            .select();
+          if (insertedItems) setActionItems((prev) => [...prev, ...insertedItems]);
+        }
+      } catch (err) {
+        console.error("Failed to lazily generate default summary:", err);
+      }
+    }
+
+    generateDefaultSummary();
+  }, [loading, meeting, summaries.length, fullTranscriptText]);
+
   const defaultSummaryText = React.useMemo(() => {
     return summaries.length > 0 ? summaries[0].content : "";
   }, [summaries]);
@@ -159,14 +216,23 @@ export default function MeetingDetailPage({ params }: MeetingDetailProps) {
       <main className="flex-1 w-full max-w-7xl mx-auto px-6 lg:px-8 py-6 grid grid-cols-1 lg:grid-cols-[1fr_340px] xl:grid-cols-[1fr_380px] gap-8 items-start">
         {/* Left Column: Video Player + Sub-Tabs */}
         <div className="flex flex-col gap-6 w-full">
-          {/* Video Player */}
-          <VideoPlayer
-            thumbnailUrl={meeting.thumbnail_url || "/test-call-thumb.png"}
-            durationMinutes={meeting.duration_minutes || 1}
-            currentTime={currentTime}
-            onTimeChange={setCurrentTime}
-            title={meeting.title}
-          />
+          {/* Video Player & Audio Player*/}
+          {meeting.audio_url ? (
+              <AudioPlayer
+                audioUrl={meeting.audio_url}
+                title={meeting.title}
+                currentTime={currentTime}
+                onTimeChange={setCurrentTime}
+              />
+            ) : (
+              <VideoPlayer
+                thumbnailUrl={meeting.thumbnail_url || "/test-call-thumb.png"}
+                durationMinutes={meeting.duration_minutes || 1}
+                currentTime={currentTime}
+                onTimeChange={setCurrentTime}
+                title={meeting.title}
+              />
+            )}
 
           {/* Sub-Tabs: SUMMARY | TRANSCRIPT | ASK HEARKEN */}
           <div className="flex items-center gap-4 border-b border-indigo-500/15 pt-1">

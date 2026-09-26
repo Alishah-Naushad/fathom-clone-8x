@@ -5,6 +5,8 @@ export { default as AnnotationsSection } from "./AnnotationsSection";
 export { default as SummaryTab } from "./SummaryTab";
 export { default as TranscriptTab } from "./TranscriptTab";
 export { default as AskFathomTab } from "./AskFathomTab";
+export { default as AudioPlayer } from "./AudioPlayer";
+
 
 export type { ActionItem } from "./ActionItemsSection";
 export type { HighlightItem } from "./AnnotationsSection";
