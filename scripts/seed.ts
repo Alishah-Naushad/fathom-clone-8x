@@ -1,9 +1,10 @@
-import { supabaseAdmin } from "../src/lib/supabase-admin";
+import { createAdminClient } from "../src/lib/supabase-admin";
 import { generateTranscript, generateSummary } from "../src/lib/gemini";
 
 // Each entry here becomes one seeded meeting. "description" is what we hand
 // to Gemini to write the fake dialogue — the more specific, the more
 // realistic the output.
+const supabaseAdmin = createAdminClient();
 const MEETINGS = [
   {
     title: "1:1 - Career Check-in",
