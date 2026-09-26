@@ -62,3 +62,14 @@ create policy "public read" on action_items for select using (true);
 create policy "public read" on highlights for select using (true);
 
 create policy "public update" on action_items for update using (true) with check (true);
+
+create table google_connections (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  access_token text not null,
+  refresh_token text,
+  expires_at timestamptz,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+alter table google_connections enable row level security;
