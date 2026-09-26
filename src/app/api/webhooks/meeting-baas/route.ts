@@ -121,8 +121,23 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "Missing transcription URL" }, { status: 400 });
       }
 
-      const transcriptRes = await fetch(transcriptionUrl);
+            const transcriptRes = await fetch(transcriptionUrl);
+
+      if (!transcriptRes.ok) {
+        console.error(
+          "Transcript fetch failed:",
+          transcriptRes.status,
+          await transcriptRes.text()
+        );
+      }
+
       const transcriptData = await transcriptRes.json();
+
+      console.log(
+        "Raw transcription payload:",
+        JSON.stringify(transcriptData).slice(0, 2000)
+      );
+
       const utterances = transcriptData?.result?.transcript ?? [];
 
       if (utterances.length === 0) {
