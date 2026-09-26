@@ -181,6 +181,9 @@ sequenceDiagram
 ### 9. 🔗 Public Shareable Meeting View (`/share/[id]`)
 - **Frictionless Sharing:** Clean, read-only link presenting meeting metadata, structured summary, and full chronological transcript without requiring recipient login.
 
+### 10. 🛡️ Public Legal & Governance Pages (`/privacy`, `/terms`)
+- **Unauthenticated Accessibility:** Publicly accessible Privacy Policy and Terms of Service detailing data isolation, Supabase Row-Level Security, zero-AI model training guarantees, recording consent compliance, and Google API Limited Use adherence.
+
 ---
 
 ## 🗄️ Database Schema & Relationships
