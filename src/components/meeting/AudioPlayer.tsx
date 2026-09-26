@@ -75,7 +75,7 @@ export default function AudioPlayer({
   const speeds = ["0.75x", "1x", "1.25x", "1.5x", "2x"];
 
   return (
-    <div className="relative w-full rounded-md overflow-hidden bg-[#18191c] border border-[#2b2c32] shadow-2xl flex flex-col">
+    <div className="relative w-full rounded-xl overflow-hidden bg-[#10121d] border border-indigo-500/20 shadow-2xl flex flex-col group">
       <audio
         ref={audioRef}
         src={audioUrl}
@@ -86,59 +86,119 @@ export default function AudioPlayer({
         onEnded={() => setIsPlaying(false)}
       />
 
-      {/* Simple audio-only "cover" area, no video/thumbnail pretense */}
-      <div className="relative w-full h-32 bg-[#141518] flex items-center justify-center">
+      {/* Audio Cover Area with Hearken Visualizer */}
+      <div className="relative aspect-[16/9] w-full bg-gradient-to-br from-[#121424] via-[#161a30] to-[#0b0c16] overflow-hidden flex flex-col items-center justify-center p-6">
+        {/* Ambient Glow */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgba(6,182,212,0.2),transparent_70%)]" />
+
+        {/* Subtle Grid Texture */}
+        <div className="absolute inset-0 opacity-10 bg-[linear-gradient(to_right,rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:20px_20px]" />
+
+        {/* Ambient Dark Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#10121d] via-transparent to-black/30 pointer-events-none" />
+
+        {/* Centered Hearken Logo Visualizer */}
+        <div className="relative z-10 flex flex-col items-center gap-3 mb-3">
+          <div className="relative flex items-center justify-center w-16 h-16 rounded-2xl bg-[#0d0f1c]/90 border border-cyan-500/40 shadow-[0_0_25px_rgba(6,182,212,0.25)]">
+            <div className="flex items-center gap-1 h-8">
+              <span className={`w-1 bg-cyan-400 rounded-full transition-all ${isPlaying ? "voice-wave-bar" : "h-4"}`} />
+              <span className={`w-1 bg-indigo-400 rounded-full transition-all ${isPlaying ? "voice-wave-bar" : "h-7"}`} />
+              <span className={`w-1 bg-cyan-300 rounded-full transition-all ${isPlaying ? "voice-wave-bar" : "h-5"}`} />
+              <span className={`w-1 bg-purple-400 rounded-full transition-all ${isPlaying ? "voice-wave-bar" : "h-3"}`} />
+            </div>
+          </div>
+          <span className="text-xs font-black tracking-[0.3em] text-slate-300 uppercase">
+            HEARKEN AUDIO
+          </span>
+        </div>
+
+        {/* Center Play / Pause Pulsing Button */}
         <button
           onClick={togglePlay}
-          aria-label={isPlaying ? "Pause" : "Play"}
-          className="w-16 h-16 rounded-full bg-[#00beff]/10 border border-[#00beff]/40 flex items-center justify-center text-[#00beff] hover:scale-110 hover:bg-[#00beff]/20 transition-all cursor-pointer"
+          aria-label={isPlaying ? "Pause Audio" : "Play Audio"}
+          className={`relative z-10 w-14 h-14 rounded-full flex items-center justify-center text-white transition-all cursor-pointer backdrop-blur-md shadow-2xl ${
+            isPlaying
+              ? "bg-black/60 border border-cyan-400/30 hover:scale-105"
+              : "bg-gradient-to-r from-cyan-500 to-indigo-600 hover:scale-110 shadow-[0_0_30px_rgba(6,182,212,0.5)] border border-cyan-300/40"
+          }`}
         >
           {isPlaying ? (
-            <svg className="w-7 h-7" fill="currentColor" viewBox="0 0 24 24">
+            <svg className="w-6 h-6 text-cyan-300" fill="currentColor" viewBox="0 0 24 24">
               <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
             </svg>
           ) : (
-            <svg className="w-7 h-7 ml-1" fill="currentColor" viewBox="0 0 24 24">
+            <svg className="w-6 h-6 ml-0.5 text-white" fill="currentColor" viewBox="0 0 24 24">
               <path d="M8 5v14l11-7z" />
             </svg>
           )}
         </button>
-        <span className="absolute bottom-3 left-4 text-xs font-semibold text-white/70 truncate max-w-[70%]">
-          {title}
-        </span>
+
+        {/* Floating Meeting Recording Badge */}
+        <div className="absolute top-4 left-4 bg-[#090a12]/80 backdrop-blur-md px-3 py-1.5 rounded-full border border-cyan-500/30 text-xs font-semibold text-cyan-300 flex items-center gap-2 shadow-lg">
+          <div className="flex items-center gap-[2px] h-3.5">
+            <span className={`w-[2.5px] bg-cyan-400 rounded-full ${isPlaying ? "voice-wave-bar" : "h-1.5"}`} />
+            <span className={`w-[2.5px] bg-indigo-400 rounded-full ${isPlaying ? "voice-wave-bar" : "h-3"}`} />
+            <span className={`w-[2.5px] bg-cyan-300 rounded-full ${isPlaying ? "voice-wave-bar" : "h-2"}`} />
+            <span className={`w-[2.5px] bg-purple-400 rounded-full ${isPlaying ? "voice-wave-bar" : "h-1"}`} />
+          </div>
+          <span>{isPlaying ? "Playing Audio" : "Audio Recording"}</span>
+        </div>
       </div>
 
-      {/* Controls bar — same layout language as your existing player */}
-      <div className="w-full bg-[#212124] px-4 py-2.5 flex items-center gap-4 select-none border-t border-[#2a2b31]">
-        <span className="text-xs font-mono font-medium text-white/90 whitespace-nowrap min-w-[36px]">
+      {/* Controls Bar */}
+      <div className="w-full bg-[#121422] px-5 py-3 flex items-center gap-4 select-none border-t border-indigo-500/15">
+        {/* Play / Pause button */}
+        <button
+          onClick={togglePlay}
+          aria-label={isPlaying ? "Pause" : "Play"}
+          className="text-slate-300 hover:text-cyan-400 transition-colors cursor-pointer"
+        >
+          {isPlaying ? (
+            <svg className="w-5 h-5 text-cyan-400" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
+            </svg>
+          ) : (
+            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M8 5v14l11-7z" />
+            </svg>
+          )}
+        </button>
+
+        {/* Current Time */}
+        <span className="text-xs font-mono font-medium text-cyan-300 whitespace-nowrap min-w-[36px]">
           {formatTime(currentTime)}
         </span>
 
-        <input
-          type="range"
-          min={0}
-          max={duration || 1}
-          value={currentTime}
-          onChange={handleSeek}
-          className="w-full h-1.5 bg-[#3a3c44] rounded-lg appearance-none cursor-pointer accent-[#00beff] focus:outline-none"
-          style={{
-            background: `linear-gradient(to right, #00beff ${(currentTime / (duration || 1)) * 100}%, #3a3c44 ${(currentTime / (duration || 1)) * 100}%)`,
-          }}
-        />
+        {/* Scrub Bar */}
+        <div className="relative flex-1 flex items-center group/scrub">
+          <input
+            type="range"
+            min={0}
+            max={duration || 1}
+            value={currentTime}
+            onChange={handleSeek}
+            className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-400 focus:outline-none"
+            style={{
+              background: `linear-gradient(to right, #00f2fe ${(currentTime / (duration || 1)) * 100}%, #1e2238 ${(currentTime / (duration || 1)) * 100}%)`,
+            }}
+          />
+        </div>
 
-        <span className="text-xs font-mono text-[#80858e] whitespace-nowrap">
+        {/* Duration */}
+        <span className="text-xs font-mono text-slate-400 whitespace-nowrap">
           {formatTime(duration)}
         </span>
 
+        {/* Speed Selector */}
         <div className="relative">
           <button
             onClick={() => setSpeedMenuOpen(!speedMenuOpen)}
-            className="text-xs font-semibold text-white/90 hover:text-white bg-[#2d2e35] px-2 py-1 rounded transition-colors cursor-pointer"
+            className="text-xs font-semibold text-slate-200 hover:text-cyan-300 bg-[#1c2033] hover:bg-[#232840] border border-indigo-500/20 px-2.5 py-1 rounded-md transition-colors cursor-pointer"
           >
             {playbackSpeed}
           </button>
           {speedMenuOpen && (
-            <div className="absolute bottom-full right-0 mb-2 bg-[#2a2b30] border border-[#383a42] rounded shadow-xl py-1 z-30 min-w-[64px]">
+            <div className="absolute bottom-full right-0 mb-2 bg-[#16192a] border border-indigo-500/30 rounded-lg shadow-2xl py-1 z-30 min-w-[72px] backdrop-blur-md">
               {speeds.map((s) => (
                 <button
                   key={s}
@@ -146,10 +206,10 @@ export default function AudioPlayer({
                     setPlaybackSpeed(s);
                     setSpeedMenuOpen(false);
                   }}
-                  className={`w-full text-center px-2 py-1 text-xs font-medium cursor-pointer transition-colors ${
+                  className={`w-full text-center px-2.5 py-1 text-xs font-medium cursor-pointer transition-colors ${
                     playbackSpeed === s
-                      ? "text-[#00beff] bg-[#33353c]"
-                      : "text-white/80 hover:bg-[#33353c] hover:text-white"
+                      ? "text-cyan-300 bg-cyan-950/40 font-bold"
+                      : "text-slate-300 hover:bg-white/5 hover:text-white"
                   }`}
                 >
                   {s}

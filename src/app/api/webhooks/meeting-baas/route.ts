@@ -2,10 +2,16 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase-admin";
 
 const LIVE_STATUSES = new Set([
+  "sent",
   "joining_call",
   "in_waiting_room",
   "in_call_not_recording",
   "in_call_recording",
+  "call_ended",
+  "left_call",
+  "transcribing",
+  "transcription_in_progress",
+  "processing",
 ]);
 
 export async function POST(request: Request) {

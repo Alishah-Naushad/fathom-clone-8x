@@ -1,5 +1,4 @@
 import React from "react";
-import Image from "next/image";
 
 export interface MeetingItem {
   id: string;
@@ -18,7 +17,6 @@ interface MeetingCardProps {
 }
 
 export default function MeetingCard({ meeting, onClick }: MeetingCardProps) {
-  const thumbSrc = meeting.thumbnail_url || "/test-call-thumb.png";
 
   const formattedDate = React.useMemo(() => {
     if (!meeting.meeting_date) return "";
@@ -37,27 +35,37 @@ export default function MeetingCard({ meeting, onClick }: MeetingCardProps) {
       onClick={() => onClick?.(meeting)}
       className="group flex flex-col gap-2.5 w-full cursor-pointer select-none p-3 rounded-xl bg-[#111320]/80 hover:bg-[#16192a]/90 border border-indigo-500/15 hover:border-cyan-500/40 transition-all duration-300 shadow-lg hover:shadow-[0_0_25px_-5px_rgba(6,182,212,0.15)] hover:-translate-y-0.5"
     >
-      {/* Thumbnail Container */}
-      <div className="relative aspect-[16/9] w-full rounded-lg overflow-hidden bg-[#0d0e17] ring-1 ring-white/10 group-hover:ring-cyan-500/50 transition-all">
-        <Image
-          src={thumbSrc}
-          alt={meeting.title}
-          fill
-          sizes="(max-width: 768px) 100vw, 320px"
-          className="object-cover group-hover:scale-105 transition-transform duration-500 opacity-90 group-hover:opacity-100"
-        />
+      {/* Audio Recording Cover / Visualizer with Hearken Logo */}
+      <div className="relative aspect-[16/9] w-full rounded-lg overflow-hidden bg-gradient-to-br from-[#121424] via-[#171a30] to-[#0c0d18] ring-1 ring-white/10 group-hover:ring-cyan-500/50 transition-all flex flex-col items-center justify-center p-4">
+        {/* Ambient glowing backdrop */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_45%,rgba(6,182,212,0.18),transparent_65%)]" />
 
-        {/* Ambient Gradient Overlay on Thumbnail */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20" />
+        {/* Subtle grid texture */}
+        <div className="absolute inset-0 opacity-10 bg-[linear-gradient(to_right,rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:16px_16px]" />
 
-        {/* Meeting Visualizer pill top-left */}
-        <div className="absolute top-2 left-2 flex items-center gap-1.5 px-2 py-1 rounded-md bg-black/60 backdrop-blur-md border border-white/10 text-[10px] font-semibold text-cyan-300">
-          <div className="flex items-center gap-[2px] h-3">
+        {/* Centered Hearken Emblem & Audio Visualizer */}
+        <div className="relative z-10 flex flex-col items-center gap-2 group-hover:scale-105 transition-transform duration-300">
+          <div className="relative flex items-center justify-center w-12 h-12 rounded-xl bg-[#0e101c]/80 border border-cyan-500/30 group-hover:border-cyan-400 group-hover:shadow-[0_0_20px_rgba(6,182,212,0.35)] transition-all">
+            <div className="flex items-center gap-[3px] h-6">
+              <span className="w-[3px] h-3 bg-cyan-400 rounded-full group-hover:h-5 transition-all duration-300" />
+              <span className="w-[3px] h-5 bg-indigo-400 rounded-full group-hover:h-3 transition-all duration-300" />
+              <span className="w-[3px] h-4 bg-cyan-300 rounded-full group-hover:h-6 transition-all duration-300" />
+              <span className="w-[3px] h-2 bg-purple-400 rounded-full group-hover:h-4 transition-all duration-300" />
+            </div>
+          </div>
+          <div className="flex items-center gap-1.5 opacity-80 group-hover:opacity-100 transition-opacity">
+            <span className="text-[10px] font-black tracking-[0.25em] text-slate-200 uppercase">HEARKEN</span>
+          </div>
+        </div>
+
+        {/* Audio Recording pill top-left */}
+        <div className="absolute top-2 left-2 flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-black/60 backdrop-blur-md border border-white/10 text-[10px] font-semibold text-cyan-300">
+          <div className="flex items-center gap-[2px] h-2.5">
             <span className="w-[2px] h-1.5 bg-cyan-400 rounded-full" />
-            <span className="w-[2px] h-3 bg-indigo-400 rounded-full" />
+            <span className="w-[2px] h-2.5 bg-indigo-400 rounded-full" />
             <span className="w-[2px] h-2 bg-cyan-300 rounded-full" />
           </div>
-          <span>AI Recorded</span>
+          <span>Audio Recording</span>
         </div>
 
         {/* Duration Badge bottom-right */}
@@ -69,7 +77,7 @@ export default function MeetingCard({ meeting, onClick }: MeetingCardProps) {
 
         {/* Formatted Date bottom-left */}
         {formattedDate && (
-          <span className="absolute bottom-2 left-2 text-[10px] font-medium text-slate-300">
+          <span className="absolute bottom-2 left-2 text-[10px] font-medium text-slate-300 bg-black/40 px-1.5 py-0.5 rounded backdrop-blur-sm">
             {formattedDate}
           </span>
         )}

@@ -7,6 +7,7 @@ export { default as MeetingCard } from "./MeetingCard";
 export { default as GoogleSignInButton } from "./GoogleSignInButton";
 export { default as UpcomingMeetingCard } from "./UpcomingMeetingCard";
 export { default as LiveMeetingCard } from "./LiveMeetingCard";
-export type { CalendarMeeting } from "./UpcomingMeetingCard";
+export { default as LandingPage } from "./LandingPage";
+export type { CalendarMeeting, MeetingTimeStatus } from "./UpcomingMeetingCard";
 export type { TabItem } from "./NavigationTabs";
 export type { MeetingItem } from "./MeetingCard";

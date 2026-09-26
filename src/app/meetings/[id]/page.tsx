@@ -226,7 +226,6 @@ export default function MeetingDetailPage({ params }: MeetingDetailProps) {
               />
             ) : (
               <VideoPlayer
-                thumbnailUrl={meeting.thumbnail_url || "/test-call-thumb.png"}
                 durationMinutes={meeting.duration_minutes || 1}
                 currentTime={currentTime}
                 onTimeChange={setCurrentTime}

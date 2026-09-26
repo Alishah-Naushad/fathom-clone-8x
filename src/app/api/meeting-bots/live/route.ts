@@ -1,7 +1,18 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
 
-const LIVE_STATUSES = ["joining_call", "in_waiting_room", "in_call_not_recording", "in_call_recording"];
+const LIVE_STATUSES = [
+  "sent",
+  "joining_call",
+  "in_waiting_room",
+  "in_call_not_recording",
+  "in_call_recording",
+  "call_ended",
+  "left_call",
+  "transcribing",
+  "transcription_in_progress",
+  "processing",
+];
 
 export async function GET() {
   const supabase = await createClient();
