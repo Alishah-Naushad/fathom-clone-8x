@@ -138,7 +138,7 @@ export async function POST(request: Request) {
         JSON.stringify(transcriptData).slice(0, 2000)
       );
 
-      const utterances = transcriptData?.result?.transcript ?? [];
+      const utterances = transcriptData?.result?.utterances ?? [];
 
       if (utterances.length === 0) {
         console.error("Transcript fetch returned 0 utterances");
